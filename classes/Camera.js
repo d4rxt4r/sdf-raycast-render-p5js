@@ -56,17 +56,26 @@ class RayCamera {
       }
    }
 
-   move(keyCode) {
-      if (keyCode === 87) {
+   /**
+    * Handles camera movement.
+    *
+    * This function uses the `keyIsDown` function to check if a key is pressed, and if it is, it updates the camera's position and direction vector accordingly.
+    *
+    * @method move
+    * @memberof RayCamera
+    * @public
+    */
+   move() {
+      if (keyIsDown(87)) {
          this._pos_vec.add(this._dir_vec.setMag(PLAYER_SPEED));
       }
-      if (keyCode === 83) {
+      if (keyIsDown(83)) {
          this._pos_vec.sub(this._dir_vec.setMag(PLAYER_SPEED));
       }
-      if (keyCode === 65) {
+      if (keyIsDown(65)) {
          this._dir_vec.rotate(-ROTATE_SPEED);
       }
-      if (keyCode === 68) {
+      if (keyIsDown(68)) {
          this._dir_vec.rotate(ROTATE_SPEED);
       }
    }
@@ -84,7 +93,11 @@ class RayCamera {
       this._options[option] = value;
    }
 
-   display_camera() {
+   /**
+    * Displays the camera on the canvas.
+    * @private
+    */
+   _display_camera() {
       push();
 
       fill(255);
@@ -296,6 +309,10 @@ class RayCamera {
       }
    }
 
+   /**
+    * Renders the current view buffer based on the given ray collisions.
+    * @param {Array} ray_collisions - The ray collisions array.
+    */
    render(ray_collisions) {
       this._view_buffer.pixels.fill(0);
 
@@ -316,6 +333,10 @@ class RayCamera {
       pop();
    }
 
+   /**
+    * Performs the ray marching process to determine the scene collisions.
+    * @param {BaseObject[]} scene_objects - The scene objects to check for collisions.
+    */
    march(scene_objects) {
       this._calc_projection_plane();
 

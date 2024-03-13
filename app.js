@@ -121,7 +121,7 @@ function draw() {
    UserUI.update();
 
    if (keyIsPressed) {
-      Camera.move(keyCode);
+      Camera.move();
    }
 
    if (UserUI.get('show_fps')) {
