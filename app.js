@@ -4,6 +4,7 @@ import { RayCamera } from 'Camera';
 import { USE_WEBGL, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'defaults';
 import { LEVEL_LIST } from 'levels';
 import { preload_textures, TEXTURES_LIST } from 'textures';
+import { round } from 'math_utils';
 
 await preload_textures();
 

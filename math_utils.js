@@ -22,7 +22,8 @@ const cos = Math.cos;
 const tan = Math.tan;
 
 const abs = Math.abs;
+const round = Math.round;
 const max = Math.max;
 const sqrt = Math.sqrt;
 
-export { deg_to_rad, map_range, sin, tan, cos, max, sqrt, int, abs };
+export { deg_to_rad, map_range, sin, tan, cos, max, sqrt, int, abs, round };
