@@ -58,8 +58,8 @@ function setup() {
             level_data: LEVEL_LIST[value],
             id: value
          });
-         Camera.setSprites(Scene.get_sprites());
-         Camera.setPos(Scene.get_center_vec());
+         Camera.set_sprites(Scene.get_sprites());
+         Camera.set_pos(Scene.get_center_vec());
       }
    });
    UserUI.hook({
@@ -107,7 +107,7 @@ function setup() {
       type: 'button',
       name: 'reset',
       handler: () => {
-         Camera.setPos(Scene.get_center_vec());
+         Camera.set_pos(Scene.get_center_vec());
       }
    });
 }

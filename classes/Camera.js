@@ -1,5 +1,5 @@
 import { SHADING_TYPE, BLACK, PLAYER_SPEED, ROTATE_SPEED, FLOOR_COLOR, CEILING_COLOR } from 'defaults';
-import { deg_to_rad, sin, tan, int } from 'math_utils';
+import { deg_to_rad, sin, tan, int, abs, map_range, set_image_pixel } from 'math_utils';
 
 const FLOOR_TEXTURE = 4;
 const CEILING_TEXTURE = 3;
@@ -34,26 +34,39 @@ class RayCamera {
       this._last_ray_index = this._options.rays;
       this._plane_y = tan(deg_to_rad(this._options.fov) / 2) * VIEW_PLANE_MAG;
 
-      this._view_buffer = createImage(this._options.rays + 1, this._scene.h);
+      this._view_buffer_len = this._options.rays + 1;
+      this._view_buffer = createImage(this._view_buffer_len, this._viewport.h);
       this._view_buffer.loadPixels();
 
-      this._z_buffer = new Array(this._options.rays + 1);
+      this._z_buffer = new Array(this._view_buffer_len);
    }
 
    /**
     * Sets the sprites to be rendered by the camera.
     * @param {Array} sprites - An array of Sprite objects to be rendered by the camera.
+    * @returns {void}
     */
-   setSprites(sprites) {
+   set_sprites(sprites) {
       this._scene.sprites = sprites || [];
       this._sprite_order = new Array(sprites?.length || 0);
       this._sprite_distance = new Array(sprites?.length || 0);
    }
 
+   /**
+    * Get an option by its name.
+    * @param {string} name The name of the option to get.
+    * @returns {any} The option value, or undefined if the option is not set.
+    */
    get_option(name) {
       return this._options?.[name];
    }
 
+   /**
+    * Sets the value of an option.
+    * @param {string} option - The name of the option to set.
+    * @param {any} value - The value to set for the option.
+    * @returns {void}
+    */
    set_option(option, value) {
       if (option in this._options) {
          this._options[option] = value;
@@ -63,7 +76,7 @@ class RayCamera {
    /**
     * Handles camera movement.
     * @description This function uses the `keyIsDown` function to check if a key is pressed, and if it is, it updates the camera's position and direction vector accordingly.
-    * @public
+    * @returns {void}
     */
    move() {
       if (keyIsDown(87)) {
@@ -80,16 +93,12 @@ class RayCamera {
       }
    }
 
-   setPos(pos_vec) {
+   set_pos(pos_vec) {
       this._pos_vec = pos_vec;
    }
 
-   getPos() {
+   get_pos() {
       return this._pos;
-   }
-
-   setOpt(option, value) {
-      this._options[option] = value;
    }
 
    /**
@@ -117,7 +126,6 @@ class RayCamera {
    }
 
    _calc_projection_plane() {
-      // REVIEW: setMag is kinda slow
       this._dir_vec.setMag(VIEW_PLANE_MAG);
 
       this._plane_vec.x = 0;
@@ -161,13 +169,16 @@ class RayCamera {
       const start_tex_x = (this._pos_vec.x / floor_texture.w) * FLOOR_TEX_SIZE;
       const start_tex_y = (this._pos_vec.y / floor_texture.h) * FLOOR_TEX_SIZE;
 
+      const z_pos = this._viewport.h / 2;
+
       let tex_x, tex_y;
       let cell_x, cell_y;
       let tx, ty;
 
-      for (let y = 0; y < this._viewport.h; y++) {
-         const horizon_height = int(y - this._viewport.h / 2);
-         const z_pos = this._viewport.h / 2;
+      const view_port_center = int(this._viewport.h / 2);
+
+      for (let y = view_port_center; y <= this._viewport.h; y++) {
+         const horizon_height = int(y - z_pos);
          const row_dist = z_pos / horizon_height;
 
          const tex_step_x = (row_dist * (end_dir_x - start_dir_x)) / ray_collisions.length;
@@ -189,12 +200,12 @@ class RayCamera {
             const floor_color = this._options.show_textures
                ? floor_texture.half_raw_pixels[floor_texture.h * ty + tx]
                : FLOOR_COLOR;
-            view_buffer.set(x, y, floor_color);
-
             const ceiling_color = this._options.show_textures
                ? ceiling_texture.half_raw_pixels[ceiling_texture.h * ty + tx]
                : CEILING_COLOR;
-            view_buffer.set(x, this._viewport.h - y - 1, ceiling_color);
+
+            set_image_pixel(x, y, floor_color, this._view_buffer_len, view_buffer.pixels);
+            set_image_pixel(x, this._viewport.h - y - 1, ceiling_color, this._view_buffer_len, view_buffer.pixels);
          }
       }
    }
@@ -228,7 +239,19 @@ class RayCamera {
                      : texture.raw_pixels;
 
                const tex_color = display_texture[texture.h * texY + tex_x];
-               view_buffer.set(collisions_count - scanLine - 1, y, tex_color);
+
+               if (!tex_color) {
+                  console.error('TEXTURE BAD');
+                  return;
+               }
+
+               set_image_pixel(
+                  collisions_count - scanLine - 1,
+                  y,
+                  tex_color,
+                  this._view_buffer_len,
+                  view_buffer.pixels
+               );
             }
          } else {
             let wall_color = line_data.color;
@@ -240,7 +263,13 @@ class RayCamera {
             }
 
             for (let y = draw_start; y < draw_end; y++) {
-               view_buffer.set(collisions_count - scanLine - 1, y, wall_color);
+               set_image_pixel(
+                  collisions_count - scanLine - 1,
+                  y,
+                  wall_color,
+                  this._view_buffer_len,
+                  view_buffer.pixels
+               );
             }
          }
 
@@ -265,7 +294,7 @@ class RayCamera {
          const sprite_y = sprite.y - this._pos_vec.y;
 
          const inv_det =
-            (1.0 / (this._plane_vec.x * this._dir_vec.y - this._dir_vec.x * this._plane_vec.y)) * VIEW_PLANE_MAG;
+            (1 / (this._plane_vec.x * this._dir_vec.y - this._dir_vec.x * this._plane_vec.y)) * VIEW_PLANE_MAG;
          const transform_x = inv_det * (this._dir_vec.y * sprite_x - this._dir_vec.x * sprite_y);
          const transform_y = inv_det * (this._plane_vec.y * sprite_x * -1 + this._plane_vec.x * sprite_y);
          //                                                             ^ idk y i need to inverse it here
@@ -282,7 +311,7 @@ class RayCamera {
          if (draw_end_y >= height) draw_end_y = height - 1;
 
          const _sprite_width = abs(int(height / transform_y)) * (this._viewport.h * this._options.wall_height_amp);
-         const sprite_width = int(map(_sprite_width, 0, this._scene.w, 0, width));
+         const sprite_width = int(map_range(_sprite_width, 0, this._scene.w, 0, width));
          let draw_start_x = int(-sprite_width / 2 + sprite_screen_x);
          if (draw_start_x < 0) draw_start_x = 0;
          let draw_end_x = int(sprite_width / 2 + sprite_screen_x);
@@ -305,7 +334,8 @@ class RayCamera {
                      continue;
                   }
 
-                  view_buffer.set(stripe, y, clr);
+                  // view_buffer.set(stripe, y, clr);
+                  set_image_pixel(stripe, y, clr, this._view_buffer_len, view_buffer.pixels);
                }
             }
          }

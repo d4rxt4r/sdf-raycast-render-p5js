@@ -34,9 +34,10 @@ const SHADING_TYPE = {
    DISTANCE: 2
 };
 
-const BLACK = color(0);
-const FLOOR_COLOR = color(200);
-const CEILING_COLOR = color(100);
+const BLACK = [0, 0, 0, 255];
+const WHITE = [255, 255, 255, 255];
+const FLOOR_COLOR = [200, 200, 200, 255];
+const CEILING_COLOR = [100, 100, 100, 255];
 
 export {
    FRAME_RATE,
@@ -55,6 +56,7 @@ export {
    WALL_HEIGHT_AMP,
    SHADING_TYPE,
    BLACK,
+   WHITE,
    FLOOR_COLOR,
    CEILING_COLOR,
    PLAYER_SPEED,

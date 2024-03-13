@@ -9,7 +9,7 @@ class SDFBox extends BaseObject {
       this._w = width;
       this._h = height;
       this._color = color;
-      this._side_color = this._color.levels.map((l, i) => (i === 3 ? l : l / 2));
+      this._side_color = this._color.map((l, i) => (i === 3 ? l : l / 2));
       this._texture_id = texture_id;
       this._texture = TEXTURES_LIST[texture_id];
    }
