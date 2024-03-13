@@ -32,6 +32,13 @@ function createSliderWithLabel(start, end, current, label, step = 1) {
    return { wrap, slider };
 }
 
+function createUserButton(name, handler) {
+   const button = createButton(name);
+   button.mousePressed(handler);
+
+   return button;
+}
+
 const WIDGETS = [
    {
       name: 'level_select',
@@ -206,6 +213,28 @@ class GUI {
    }
 
    /**
+    * Serializes the widget data and stores it in the local storage.
+    * @private
+    * @returns {void}
+    */
+   _serialize() {
+      const ui_data = {};
+      this._widgets.forEach((widget) => {
+         const { name, value, ...props } = widget;
+         ui_data[name] = value;
+      });
+
+      ui_data['position'] = {
+         x: this._position.x,
+         y: this._position.y
+      };
+
+      this._user_data = ui_data;
+
+      localStorage.setItem('UserUIData', JSON.stringify(ui_data));
+   }
+
+   /**
     * Creates the widgets and adds them to the GUI.
     * @param {Array} widgets - An array of widget objects.
     * @returns {void}
@@ -272,8 +301,9 @@ class GUI {
     * @param {Object} [options.object] - The object to get and set the option from. Required if type is 'option'.
     * @param {string | Function} [options.getter] - The getter function name to get the option value or the custom getter function.
     * @param {string | Function} [options.setter] - The setter function name to set the option value or the custom setter function.
+    * @param {Function} [options.handler] - The handler function to be called. Required if type is 'button'.
     */
-   hook({ type = 'option', name, object, getter = 'get', setter = 'set' }) {
+   hook({ type = 'option', name, object, getter = 'get', setter = 'set', handler = null }) {
       if (type === 'option') {
          if (!object) {
             throw new Error('Object not provided');
@@ -300,6 +330,14 @@ class GUI {
             getter,
             setter
          });
+      }
+
+      if (type === 'button') {
+         if (!handler) {
+            throw new Error('Handler not provided');
+         }
+
+         createUserButton(name, handler).parent(this._root);
       }
    }
 
@@ -338,28 +376,6 @@ class GUI {
             this._serialize();
          }
       }
-   }
-
-   /**
-    * Serializes the widget data and stores it in the local storage.
-    * @private
-    * @returns {void}
-    */
-   _serialize() {
-      const ui_data = {};
-      this._widgets.forEach((widget) => {
-         const { name, value, ...props } = widget;
-         ui_data[name] = value;
-      });
-
-      ui_data['position'] = {
-         x: this._position.x,
-         y: this._position.y
-      };
-
-      this._user_data = ui_data;
-
-      localStorage.setItem('UserUIData', JSON.stringify(ui_data));
    }
 }
 

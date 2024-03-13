@@ -21,7 +21,7 @@ const Camera = new RayCamera({
    scene: {
       w: WIDTH,
       h: HEIGHT,
-      sprites: Scene.getSprites(),
+      sprites: Scene.get_sprites(),
       textures: TEXTURES_LIST
    },
    viewport: {
@@ -51,14 +51,14 @@ function setup() {
       name: 'level_select',
       getter: () => Scene.id,
       setter: (value) => {
-         Scene.reInit({
+         Scene.change_level({
             screen_width: WIDTH,
             screen_height: HEIGHT,
             level_data: LEVEL_LIST[value],
             id: value
          });
-         Camera.setSprites(Scene.getSprites());
-         Camera.setPos(...Scene.getCenter());
+         Camera.setSprites(Scene.get_sprites());
+         Camera.setPos(Scene.get_center_vec());
       }
    });
    UserUI.hook({
@@ -101,13 +101,21 @@ function setup() {
    UserUI.hook({ type: 'option', name: 'show_sprites', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'debug_rays', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'debug_sdf', object: Camera, getter: 'get_option', setter: 'set_option' });
+
+   UserUI.hook({
+      type: 'button',
+      name: 'reset',
+      handler: () => {
+         Camera.setPos(Scene.get_center_vec());
+      }
+   });
 }
 
 function draw() {
    background(0);
 
    // Scene.render();
-   Camera.march(Scene.getObjects());
+   Camera.march(Scene.get_objects());
 
    UserUI.update();
 

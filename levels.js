@@ -6,6 +6,14 @@ const TEST_LEVEL_0 = {
       [0, 1, 0, 0, 0, 1, 0],
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0]
+   ],
+   entities: [
+      {
+         x: 4,
+         y: 3,
+         texture_id: 7,
+         name: 'light'
+      }
    ]
 };
 

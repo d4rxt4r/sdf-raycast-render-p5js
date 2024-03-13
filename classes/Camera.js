@@ -3,7 +3,7 @@ import { deg_to_rad, sin, tan, int } from 'math_utils';
 
 const FLOOR_TEXTURE = 4;
 const CEILING_TEXTURE = 3;
-const FLOOR_TEXT_AMP = 0.5;
+const FLOOR_TEXT_AMP = 1;
 const FLOOR_TEX_SIZE = 1 / FLOOR_TEXT_AMP;
 
 const VIEW_PLANE_MAG = 30;
@@ -80,9 +80,8 @@ class RayCamera {
       }
    }
 
-   setPos(x, y) {
-      this._pos_vec.x = x;
-      this._pos_vec.y = y;
+   setPos(pos_vec) {
+      this._pos_vec = pos_vec;
    }
 
    getPos() {

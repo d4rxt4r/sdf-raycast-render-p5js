@@ -23,6 +23,22 @@ class SDFScene {
       this._set_entities_scene_coordinates();
    }
 
+   get id() {
+      return this._id;
+   }
+
+   _spawn_objects() {
+      this._objects = [];
+      for (let row = 0; row < this._height; row++) {
+         for (let col = 0; col < this._width; col++) {
+            const type = this._raw_data[row][col];
+            if (type) {
+               this._objects.push(gen_obj(type, col, row, this.tile_width, this.tile_height));
+            }
+         }
+      }
+   }
+
    _set_entities_scene_coordinates() {
       this._entities.forEach((entity) => {
          entity.x = (entity.x - 1) * this.tile_width + this.tile_width / 2;
@@ -30,25 +46,21 @@ class SDFScene {
       });
    }
 
-   get id() {
-      return this._id;
-   }
-
-   reInit(rawMap) {
+   change_level(rawMap) {
       this.init(rawMap);
       this._spawn_objects();
    }
 
-   getObjects() {
+   get_objects() {
       return this._objects;
    }
 
-   getSprites() {
+   get_sprites() {
       return this._entities;
    }
 
-   getCenter() {
-      return [round((this._width * this.tile_width) / 2), round((this._height * this.tile_height) / 2)];
+   get_center_vec() {
+      return createVector(round((this._width * this.tile_width) / 2), round((this._height * this.tile_height) / 2));
    }
 
    render() {
@@ -62,18 +74,6 @@ class SDFScene {
       });
 
       pop();
-   }
-
-   _spawn_objects() {
-      this._objects = [];
-      for (let row = 0; row < this._height; row++) {
-         for (let col = 0; col < this._width; col++) {
-            const type = this._raw_data[row][col];
-            if (type) {
-               this._objects.push(gen_obj(type, col, row, this.tile_width, this.tile_height));
-            }
-         }
-      }
    }
 }
 
