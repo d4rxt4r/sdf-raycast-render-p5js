@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <!-- dev -->
+      <script src="lib/p5.min.js"></script>
+      <!-- prod -->
+      <!-- <script src="lib/p5.min.js"></script> -->
+      <meta charset="utf-8" />
+      <style>
+         html,
+         body {
+            margin: 0;
+            padding: 0;
+         }
+         canvas {
+            display: block;
+         }
+      </style>
+   </head>
+   <body>
+      <main></main>
+
+      <script type="importmap">
+         {
+            "imports": {
+               "defaults": "./defaults.js",
+               "math_utils": "./math_utils.js",
+               "objects": "./objects.js",
+               "textures": "./textures.js",
+               "levels": "./levels.js",
+               "Camera": "./classes/Camera.js",
+               "Scene": "./classes/Scene.js",
+               "GUI": "./classes/GUI.js"
+            }
+         }
+      </script>
+
+      <script type="module" src="app.js"></script>
+   </body>
+</html>
