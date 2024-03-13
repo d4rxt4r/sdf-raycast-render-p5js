@@ -1,4 +1,4 @@
-import { SHADING_TYPE, BLACK, PLAYER_SPEED, ROTATE_SPEED } from 'defaults';
+import { SHADING_TYPE, BLACK, PLAYER_SPEED, ROTATE_SPEED, FLOOR_COLOR, CEILING_COLOR } from 'defaults';
 import { deg_to_rad, sin, tan, int } from 'math_utils';
 
 const FLOOR_TEXTURE = 4;
@@ -16,7 +16,7 @@ class RayCamera {
 
       // camera projection
       this._pos_vec = createVector(scene.w / 2, scene.h / 2);
-      this._dir_vec = createVector(0, 1);
+      this._dir_vec = createVector(0, -1);
       this._plane_vec = createVector(0, this._plane_y);
 
       this._plane_center_vec = createVector(this._pos_vec.x, this._pos_vec.y);
@@ -40,17 +40,21 @@ class RayCamera {
       this._z_buffer = new Array(this._options.rays + 1);
    }
 
+   /**
+    * Sets the sprites to be rendered by the camera.
+    * @param {Array} sprites - An array of Sprite objects to be rendered by the camera.
+    */
    setSprites(sprites) {
       this._scene.sprites = sprites || [];
       this._sprite_order = new Array(sprites?.length || 0);
       this._sprite_distance = new Array(sprites?.length || 0);
    }
 
-   getOptions() {
-      return this._options;
+   get_option(name) {
+      return this._options?.[name];
    }
 
-   setOption(option, value) {
+   set_option(option, value) {
       if (option in this._options) {
          this._options[option] = value;
       }
@@ -58,11 +62,7 @@ class RayCamera {
 
    /**
     * Handles camera movement.
-    *
-    * This function uses the `keyIsDown` function to check if a key is pressed, and if it is, it updates the camera's position and direction vector accordingly.
-    *
-    * @method move
-    * @memberof RayCamera
+    * @description This function uses the `keyIsDown` function to check if a key is pressed, and if it is, it updates the camera's position and direction vector accordingly.
     * @public
     */
    move() {
@@ -187,10 +187,14 @@ class RayCamera {
             tex_x += tex_step_x;
             tex_y += tex_step_y;
 
-            const floor_color = floor_texture.half_raw_pixels[floor_texture.h * ty + tx];
+            const floor_color = this._options.show_textures
+               ? floor_texture.half_raw_pixels[floor_texture.h * ty + tx]
+               : FLOOR_COLOR;
             view_buffer.set(x, y, floor_color);
 
-            const ceiling_color = ceiling_texture.half_raw_pixels[ceiling_texture.h * ty + tx];
+            const ceiling_color = this._options.show_textures
+               ? ceiling_texture.half_raw_pixels[ceiling_texture.h * ty + tx]
+               : CEILING_COLOR;
             view_buffer.set(x, this._viewport.h - y - 1, ceiling_color);
          }
       }
@@ -230,7 +234,7 @@ class RayCamera {
          } else {
             let wall_color = line_data.color;
             if (this._options.shading_type === SHADING_TYPE.DISTANCE) {
-               wall_color = lerpColor(line_data.color, BLACK, distance / this._scene.h);
+               wall_color = lerpColor(line_data.color, BLACK, line_data.distance / this._scene.h);
             }
             if (this._options.shading_type === SHADING_TYPE.SIDE && line_data.is_side_hit) {
                wall_color = line_data.half_color;
@@ -315,11 +319,8 @@ class RayCamera {
     */
    render(ray_collisions) {
       this._view_buffer.pixels.fill(0);
-
-      if (this._options.show_textures) {
-         // actually renders ceiling too
-         this._render_floor(ray_collisions, this._view_buffer);
-      }
+      // actually renders ceiling too
+      this._render_floor(ray_collisions, this._view_buffer);
       this._render_walls(ray_collisions, this._view_buffer, this._z_buffer);
       if (this._options.show_sprites) {
          this._render_sprites(ray_collisions, this._view_buffer, this._z_buffer);
