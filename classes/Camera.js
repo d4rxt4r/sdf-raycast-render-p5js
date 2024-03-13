@@ -105,9 +105,6 @@ class RayCamera {
    }
 
    _calc_projection_plane() {
-      // this._dir_vec.x = winMouseX - this._pos_vec.x;
-      // this._dir_vec.y = winMouseY - this._pos_vec.y;
-
       // REVIEW: setMag is kinda slow
       this._dir_vec.setMag(VIEW_PLANE_MAG);
 
@@ -156,9 +153,9 @@ class RayCamera {
       let cell_x, cell_y;
       let tx, ty;
 
-      for (let y = 0; y < this._scene.h; y++) {
-         const horizon_height = int(y - this._scene.h / 2);
-         const z_pos = this._scene.h / 2;
+      for (let y = 0; y < this._viewport.h; y++) {
+         const horizon_height = int(y - this._viewport.h / 2);
+         const z_pos = this._viewport.h / 2;
          const row_dist = z_pos / horizon_height;
 
          const tex_step_x = (row_dist * (end_dir_x - start_dir_x)) / ray_collisions.length;
@@ -181,7 +178,7 @@ class RayCamera {
             view_buffer.set(x, y, floor_color);
 
             const ceiling_color = ceiling_texture.half_raw_pixels[ceiling_texture.h * ty + tx];
-            view_buffer.set(x, this._scene.h - y - 1, ceiling_color);
+            view_buffer.set(x, this._viewport.h - y - 1, ceiling_color);
          }
       }
    }

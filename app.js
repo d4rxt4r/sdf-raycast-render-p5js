@@ -1,5 +1,3 @@
-p5.disableFriendlyErrors = true;
-
 import { GUI } from 'GUI';
 import { SDFScene } from 'Scene';
 import { RayCamera } from 'Camera';
@@ -139,42 +137,3 @@ function draw() {
 
 setup();
 window.draw = draw;
-
-// FIXME:
-// 1. is_side_hit is wrong than looking straight up/down/left/right
-// 2. side textures are drown black from certain perspectives
-// 3. triangles 31, 32 stopped working somehow
-// 4. floor and ceiling moves with different speed relative to walls
-// 5. sprites size is discrete, use floats?
-//    sprites x = 0 are not drawn
-//    sprites are not drawn ar x-res > 50% wtf lol
-
-// Possible performance improvements:
-// 1. use native JS call for Maths functions
-//    (sin, cos, max, etc..)
-// 2. don't construct p5.Color objects than array of values can be used
-//    (use [r, g, b, a] instead of color(r, g, b, a))
-// 3. try Fast Inverse Sqrt instead of sqrt() for dist functions
-// ̶4̶.̶ ̶c̶a̶c̶h̶e̶ ̶a̶l̶l̶ ̶g̶r̶a̶p̶h̶i̶c̶s̶,̶ ̶r̶e̶s̶i̶z̶e̶ ̶p̶i̶x̶e̶l̶s̶ ̶o̶n̶l̶y̶ ̶o̶n̶ ̶w̶i̶d̶t̶h̶/̶h̶e̶i̶g̶h̶t̶ ̶c̶h̶a̶n̶g̶e̶s̶
-// ̶ ̶ ̶ ̶(̶g̶e̶t̶I̶m̶a̶g̶e̶D̶a̶t̶a̶ ̶i̶s̶ ̶s̶l̶o̶w̶)̶
-// 4.1 set p5.Image.pixels instead of p5.Image.set()
-//    (set is slow)
-// ̶4̶.̶2̶ ̶a̶l̶s̶o̶ ̶c̶a̶c̶h̶e̶ ̶a̶n̶y̶ ̶a̶r̶r̶a̶y̶s̶ ̶o̶f̶ ̶g̶i̶v̶e̶n̶ ̶l̶e̶n̶g̶t̶h̶
-// ̶ ̶ ̶ ̶ ̶(̶r̶e̶u̶s̶e̶ ̶a̶s̶ ̶m̶u̶c̶h̶ ̶a̶s̶ ̶p̶o̶s̶s̶i̶b̶l̶e̶ ̶t̶o̶ ̶a̶v̶o̶i̶d̶ ̶G̶C̶)̶
-// 5. redraw on changes? (https://p5js.org/reference/#/p5/redraw)
-// 6. remove unnecessary push()'s and pop()'s
-
-// TODO:
-// - add side shading to all objects
-// - add texture to all objects
-// - implement distance-based texture shading
-// - adaptive wall height
-// - add hotkeys to menu
-// - rewrite GUI's hook() for simple fields changes
-
-// 1. add collisions
-// 2. implement DDA to compare to SDF
-// 3. add walls, floors and ceilings variable heights
-// 4. connect nearest boxes to one object
-// 5. make entities a class to give them modify attrs
-// 6. add more complex shapes
