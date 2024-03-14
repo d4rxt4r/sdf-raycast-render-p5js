@@ -192,10 +192,12 @@ class GUI {
       try {
          this._user_data = JSON.parse(localStorage.getItem('UserUIData'));
       } catch {
-         this._user_data = [];
+         this._user_data = {
+            position: { x: 10, y: 10 }
+         };
       }
 
-      this._position = this._user_data.position ?? { x: 10, y: 10 };
+      this._position = this._user_data.position;
 
       this.create(WIDGETS);
    }

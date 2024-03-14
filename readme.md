@@ -1,34 +1,36 @@
 FIXME:
 
-1. is_side_hit is wrong than looking straight up/down/left/right
-2. side textures are drown black from certain perspectives
-3. triangles 31, 32 stopped working somehow
-4. sprites size is discrete, use floats?
-5. sprites x = 0 are not drawn
-6. sprites are not drawn ar x-res > 50% wtf lol
+[ ] is_side_hit is wrong than looking straight up/down/left/right
+[ ] side textures are drown black from certain perspectives
+[ ] triangles 31, 32 stopped working somehow
+[ ] sprites size is discrete, use floats?
+[ ] sprites x = 0 are not drawn
+[ ] sprites are not drawn ar x-res > 50% wtf lol
+[ ] fix wall height and remove setting
+[ ] wall and ceiling speed is different relative to walls
 
 Possible performance improvements:
 
-1. use native JS call for Maths functions
-   (sin, cos, max, etc..)
-2. don't construct p5.Color objects than array of values can be used
-   (use [r, g, b, a] instead of color(r, g, b, a))
-3. try Fast Inverse Sqrt instead of sqrt() for dist functions
-4. cache all graphics, resize pixels only on width/height change
-   (getImageData is slow)
-5. set p5.Image.pixels instead of p5.Image.set()
-   (set is slow)
-6. redraw on changes? (https://p5js.org/reference/#/p5/redraw)
-7. remove unnecessary push()'s and pop()'s
+[x] use native JS call for Maths functions
+(sin, cos, max, etc..)
+[x] 2. don't construct p5.Color objects than array of values can be used
+(use [r, g, b, a] instead of color(r, g, b, a))
+[x] cache all graphics, resize pixels only on width/height change
+(getImageData is slow)
+[x] set p5.Image.pixels instead of p5.Image.set()
+(set is slow)
+[ ] remove unnecessary push()'s and pop()'s
+[ ] redraw on changes? (https://p5js.org/reference/#/p5/redraw)
+[ ] try vertical floor casting
+[ ] try Fast Inverse Sqrt instead of sqrt() for dist functions
 
 TODO:
 
+-  make resolution proportional
+-  add minimap
 -  add side shading to all objects
 -  add texture to all objects
 -  implement distance-based texture shading
--  adaptive wall height
--  add hotkeys to menu
--  rewrite GUI's hook() for simple fields changes
 -  add collisions
 -  implement DDA to compare to SDF
 -  add walls, floors and ceilings variable heights
