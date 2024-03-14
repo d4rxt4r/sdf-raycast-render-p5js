@@ -1,5 +1,4 @@
-import { TEX_WIDTH, TEX_HEIGHT } from 'defaults';
-import { int } from 'math_utils';
+import { TEX_WIDTH, TEX_HEIGHT, WHITE } from 'defaults';
 
 const TEX_RED_CROSS = (tex, x, y, tex_w, tex_h, raw_pixels) => {
    const clr = [x != y && x != tex_w - y ? 255 : 0, 0, 0];
@@ -51,7 +50,7 @@ function gen_tex_from_img(tex_w, tex_h, image_data) {
    const raw_pixels = [];
    const tex = createGraphics(tex_w, tex_h);
 
-   tex.fill(255);
+   tex.fill(WHITE);
    tex.circle(tex_w / 2, tex_h / 2, 10);
 
    tex.image(image_data, 0, 0, tex_w, tex_h);
@@ -63,9 +62,7 @@ function gen_tex_from_img(tex_w, tex_h, image_data) {
       for (let y = 0; y < tex_h; y++) {
          const i = 4 * d * (y * d * tex_w + x);
 
-         const rgb = [tex.pixels[i], tex.pixels[i + 1], tex.pixels[i + 2]];
-         const clr = [...rgb, 255];
-
+         const clr = [tex.pixels[i], tex.pixels[i + 1], tex.pixels[i + 2]];
          raw_pixels[tex_h * y + x] = clr;
       }
    }
@@ -117,4 +114,45 @@ const TEX_GENS = [TEX_RED_CROSS, TEX_XOR_GREEN, TEX_YELLOW_GRAD];
 const TEX_IMAGES = [];
 const TEXTURES_LIST = [];
 
-export { TEX_PATHS, TEX_IMAGES, TEXTURES_LIST, preload_textures };
+/**
+ * Calculates the index of a pixel in an image given its x, y coordinates and channel number.
+ * @param {number} x - The x coordinate of the pixel.
+ * @param {number} y - The y coordinate of the pixel.
+ * @param {number} image_width - The width of the image.
+ * @param {number} channel - The channel number (0-3) of the pixel.
+ * @returns {number} The index of the pixel in the image array.
+ */
+function get_pixel_index(x, y, image_width, channel) {
+   return (y * image_width + x) * 4 + channel;
+}
+
+function get_image_pixel(x, y, image_data, image_width) {
+   const r_index = get_pixel_index(x, y, image_width, 0);
+
+   return [image_data[r_index], image_data[r_index + 1], image_data[r_index + 2], image_data[r_index + 3]];
+}
+
+/**
+ * Sets the pixel value of an image at a specific location.
+ *
+ * @param {number} x - The x coordinate of the pixel to set.
+ * @param {number} y - The y coordinate of the pixel to set.
+ * @param {number[]} color - An array of four numbers representing the red, green, blue, and alpha values of the pixel.
+ * @param {number} image_width - The width of the image.
+ * @param {number[]} image_data - The image data as an array of numbers.
+ */
+function set_image_pixel(x, y, color, image_data, image_width) {
+   const [r, g, b, a = 255] = color;
+   const r_index = get_pixel_index(x, y, image_width, 0);
+
+   image_data[r_index] = r;
+   image_data[r_index + 1] = g;
+   image_data[r_index + 2] = b;
+   image_data[r_index + 3] = a;
+}
+
+function average_colors(color_a, color_b) {
+   return [~~((color_a[0] + color_b[0]) / 2), ~~((color_a[1] + color_b[1]) / 2), ~~((color_a[2] + color_b[2]) / 2), 255];
+}
+
+export { TEX_PATHS, TEX_IMAGES, TEXTURES_LIST, preload_textures, get_pixel_index, get_image_pixel, set_image_pixel, average_colors };

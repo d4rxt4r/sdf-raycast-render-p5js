@@ -1,9 +1,7 @@
-import { GUI } from 'GUI';
-import { SDFScene } from 'Scene';
-import { RayCamera } from 'Camera';
-import { USE_WEBGL, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'defaults';
+import { FRAME_RATE, USE_WEBGL, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'defaults';
+import { TEXTURES_LIST, preload_textures } from 'textures';
+import { GUI, SDFScene, RayCamera } from 'classes';
 import { LEVEL_LIST } from 'levels';
-import { preload_textures, TEXTURES_LIST } from 'textures';
 import { round } from 'math_utils';
 
 await preload_textures();
@@ -45,6 +43,7 @@ const Camera = new RayCamera({
 });
 
 function setup() {
+   frameRate(FRAME_RATE);
    createCanvas(WIDTH, HEIGHT, USE_WEBGL ? WEBGL2 : P2D);
 
    UserUI.hook({
@@ -113,8 +112,6 @@ function setup() {
 }
 
 function draw() {
-   background(0);
-
    // Scene.render();
    Camera.march(Scene.get_objects());
 

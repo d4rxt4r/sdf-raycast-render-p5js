@@ -3,7 +3,7 @@ class BaseObject {
       this.x = x;
       this.y = y;
 
-      this._color = [random(256), random(256), random(256), 255];
+      this._color = [random(256), random(256), random(256)];
    }
 
    collide() {

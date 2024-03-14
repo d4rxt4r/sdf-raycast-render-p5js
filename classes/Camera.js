@@ -1,12 +1,11 @@
-import { SHADING_TYPE, BLACK, PLAYER_SPEED, ROTATE_SPEED, FLOOR_COLOR, CEILING_COLOR } from 'defaults';
-import { deg_to_rad, sin, tan, int, abs, map_range, set_image_pixel } from 'math_utils';
+import { SHADING_TYPE, BLACK, PLAYER_SPEED, ROTATE_SPEED, FLOOR_COLOR, CEILING_COLOR, WHITE } from 'defaults';
+import { deg_to_rad, sin, tan, int, abs, map_range } from 'math_utils';
+import { get_image_pixel, set_image_pixel, average_colors } from 'textures';
 
 const FLOOR_TEXTURE = 4;
 const CEILING_TEXTURE = 3;
 const FLOOR_TEXT_AMP = 1;
 const FLOOR_TEX_SIZE = 1 / FLOOR_TEXT_AMP;
-
-const VIEW_PLANE_MAG = 30;
 
 class RayCamera {
    constructor({ scene, viewport, options }) {
@@ -32,7 +31,7 @@ class RayCamera {
    calc_viewport() {
       this._start_ray_index = 0;
       this._last_ray_index = this._options.rays;
-      this._plane_y = tan(deg_to_rad(this._options.fov) / 2) * VIEW_PLANE_MAG;
+      this._plane_y = tan(deg_to_rad(this._options.fov) / 2);
 
       this._view_buffer_len = this._options.rays + 1;
       this._view_buffer = createImage(this._view_buffer_len, this._viewport.h);
@@ -80,10 +79,10 @@ class RayCamera {
     */
    move() {
       if (keyIsDown(87)) {
-         this._pos_vec.add(this._dir_vec.setMag(PLAYER_SPEED));
+         this._pos_vec.add(p5.Vector.setMag(this._dir_vec, PLAYER_SPEED));
       }
       if (keyIsDown(83)) {
-         this._pos_vec.sub(this._dir_vec.setMag(PLAYER_SPEED));
+         this._pos_vec.sub(p5.Vector.setMag(this._dir_vec, PLAYER_SPEED));
       }
       if (keyIsDown(65)) {
          this._dir_vec.rotate(-ROTATE_SPEED);
@@ -108,8 +107,8 @@ class RayCamera {
    _display_camera() {
       push();
 
-      fill(255);
-      stroke(255);
+      fill(WHITE);
+      stroke(WHITE);
       circle(this._pos_vec.x, this._pos_vec.y, 10);
 
       stroke(0, 0, 255);
@@ -125,11 +124,11 @@ class RayCamera {
       pop();
    }
 
+   // REVIEW: optimize vectors math
    _calc_projection_plane() {
-      this._dir_vec.setMag(VIEW_PLANE_MAG);
-
       this._plane_vec.x = 0;
       this._plane_vec.y = this._plane_y;
+
       const plane_angle = this._plane_vec.angleBetween(this._dir_vec);
       this._plane_vec.setHeading(plane_angle);
 
@@ -141,30 +140,39 @@ class RayCamera {
       this._plane_display_end_vec = p5.Vector.add(this._plane_center_vec, this._plane_vec);
    }
 
+   /**
+    * Sorts the sprites based on their distance from the camera.
+    * @private
+    */
    _sort_sprites() {
-      const sprites = new Array(this._scene.sprites.length);
-      for (let i = 0; i < this._scene.sprites.length; i++) {
-         sprites[i] = {
-            first: this._sprite_distance[i],
-            second: this._sprite_order[i]
-         };
-      }
-      sprites.sort((a, b) => a.first - b.first);
-      for (let i = 0; i < this._scene.sprites.length; i++) {
-         this._sprite_distance[i] = sprites[this._scene.sprites.length - i - 1].first;
-         this._sprite_order[i] = sprites[this._scene.sprites.length - i - 1].second;
-      }
+      this._sprite_distance.sort((a, b) => a - b);
+      this._sprite_order.sort((a, b) => this._sprite_distance.indexOf(a) - this._sprite_distance.indexOf(b));
+   }
+
+   /**
+    * Calculates the floor direction based on the direction vector and plane vector.
+    * @return {Object} Object containing start and end direction coordinates
+    */
+   _get_floor_dir() {
+      const start_dir_x = (this._dir_vec.x + this._plane_vec.x) * FLOOR_TEX_SIZE;
+      const start_dir_y = (this._dir_vec.y + this._plane_vec.y) * FLOOR_TEX_SIZE;
+
+      const end_dir_x = (this._dir_vec.x - this._plane_vec.x) * FLOOR_TEX_SIZE;
+      const end_dir_y = (this._dir_vec.y - this._plane_vec.y) * FLOOR_TEX_SIZE;
+
+      return {
+         start_dir_x,
+         start_dir_y,
+         end_dir_x,
+         end_dir_y
+      };
    }
 
    _render_floor(ray_collisions, view_buffer) {
       const floor_texture = this._scene.textures[FLOOR_TEXTURE];
       const ceiling_texture = this._scene.textures[CEILING_TEXTURE];
 
-      const start_dir_x = ((this._dir_vec.x + this._plane_vec.x) * FLOOR_TEX_SIZE) / VIEW_PLANE_MAG;
-      const start_dir_y = ((this._dir_vec.y + this._plane_vec.y) * FLOOR_TEX_SIZE) / VIEW_PLANE_MAG;
-
-      const end_dir_x = ((this._dir_vec.x - this._plane_vec.x) * FLOOR_TEX_SIZE) / VIEW_PLANE_MAG;
-      const end_dir_y = ((this._dir_vec.y - this._plane_vec.y) * FLOOR_TEX_SIZE) / VIEW_PLANE_MAG;
+      const { start_dir_x, start_dir_y, end_dir_x, end_dir_y } = this._get_floor_dir();
 
       const start_tex_x = (this._pos_vec.x / floor_texture.w) * FLOOR_TEX_SIZE;
       const start_tex_y = (this._pos_vec.y / floor_texture.h) * FLOOR_TEX_SIZE;
@@ -204,8 +212,8 @@ class RayCamera {
                ? ceiling_texture.half_raw_pixels[ceiling_texture.h * ty + tx]
                : CEILING_COLOR;
 
-            set_image_pixel(x, y, floor_color, this._view_buffer_len, view_buffer.pixels);
-            set_image_pixel(x, this._viewport.h - y - 1, ceiling_color, this._view_buffer_len, view_buffer.pixels);
+            set_image_pixel(x, y, floor_color, view_buffer.pixels, this._view_buffer_len);
+            set_image_pixel(x, this._viewport.h - y - 1, ceiling_color, view_buffer.pixels, this._view_buffer_len);
          }
       }
    }
@@ -249,8 +257,8 @@ class RayCamera {
                   collisions_count - scanLine - 1,
                   y,
                   tex_color,
-                  this._view_buffer_len,
-                  view_buffer.pixels
+                  view_buffer.pixels,
+                  this._view_buffer_len
                );
             }
          } else {
@@ -267,8 +275,8 @@ class RayCamera {
                   collisions_count - scanLine - 1,
                   y,
                   wall_color,
-                  this._view_buffer_len,
-                  view_buffer.pixels
+                  view_buffer.pixels,
+                  this._view_buffer_len
                );
             }
          }
@@ -293,8 +301,7 @@ class RayCamera {
          const sprite_x = sprite.x - this._pos_vec.x;
          const sprite_y = sprite.y - this._pos_vec.y;
 
-         const inv_det =
-            (1 / (this._plane_vec.x * this._dir_vec.y - this._dir_vec.x * this._plane_vec.y)) * VIEW_PLANE_MAG;
+         const inv_det = 1 / (this._plane_vec.x * this._dir_vec.y - this._dir_vec.x * this._plane_vec.y);
          const transform_x = inv_det * (this._dir_vec.y * sprite_x - this._dir_vec.x * sprite_y);
          const transform_y = inv_det * (this._plane_vec.y * sprite_x * -1 + this._plane_vec.x * sprite_y);
          //                                                             ^ idk y i need to inverse it here
@@ -334,8 +341,11 @@ class RayCamera {
                      continue;
                   }
 
+                  const old_color = get_image_pixel(stripe, y, view_buffer.pixels, this._view_buffer_len);
                   // view_buffer.set(stripe, y, clr);
-                  set_image_pixel(stripe, y, clr, this._view_buffer_len, view_buffer.pixels);
+                  // set_image_pixel(stripe, y, clr, view_buffer.pixels, this._view_buffer_len);
+                  // const new_color = average_colors(old_color, clr);
+                  // set_image_pixel(stripe, y, new_color, view_buffer.pixels, this._view_buffer_len);
                }
             }
          }
