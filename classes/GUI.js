@@ -197,7 +197,7 @@ class GUI {
          };
       }
 
-      this._position = this._user_data.position;
+      this._position = this._user_data.position || { x: 10, y: 10 };
 
       this.create(WIDGETS);
    }
