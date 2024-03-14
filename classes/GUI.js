@@ -5,14 +5,20 @@ import { LEVEL_LIST } from 'levels';
  * Adds a label to an element.
  * @param {p5.Element} element - The element to which the label should be added.
  * @param {string} label - The text to display as the label.
+ * @param {number} current_value - The current value of the slider.
  * @returns {p5.Element} The wrapping element that contains the label and the original element.
  */
-function addLabel(element, label) {
+function addLabel(element, label, current_value) {
    const wrap = createDiv().style('display', 'flex').style('align-items', 'center').style('gap', '8px');
+
+   let value_label;
+   if (current_value) {
+      value_label = createSpan(current_value).size(30).parent(wrap);
+   }
    element.parent(wrap);
    createSpan(label).parent(wrap);
 
-   return wrap;
+   return { value_label, wrap };
 }
 
 /**
@@ -26,10 +32,11 @@ function addLabel(element, label) {
  */
 function createSliderWithLabel(start, end, current, label, step = 1) {
    const slider = createSlider(start, end, current, step);
-   const wrap = addLabel(slider, label);
+   const { wrap, value_label } = addLabel(slider, label, current);
+
    slider.size(150);
 
-   return { wrap, slider };
+   return { wrap, slider, value_label };
 }
 
 function createUserButton(name, handler) {
@@ -44,132 +51,132 @@ const WIDGETS = [
       name: 'level_select',
       prop: 'value',
       create(root, value = '0') {
-         const el = createSelect();
-         LEVEL_LIST.forEach((_, i) => el.option(`${i} level`, i));
+         const widget = createSelect();
+         LEVEL_LIST.forEach((_, i) => widget.option(`${i} level`, i));
 
-         el.selected(value);
-         el.parent(root);
+         widget.selected(value);
+         widget.parent(root);
 
-         return el;
+         return { widget };
       }
    },
    {
       name: 'target_fps',
       prop: 'value',
       create(root, value = TARGET_FPS) {
-         const { wrap, slider } = createSliderWithLabel(1, 140, value, 'max FPS');
+         const { wrap, slider: widget, value_label } = createSliderWithLabel(1, 140, value, 'max FPS');
          wrap.parent(root);
 
-         return slider;
+         return { widget, value_label };
       }
    },
    {
       name: 'fov',
       prop: 'value',
       create(root, value = FOV) {
-         const { wrap, slider } = createSliderWithLabel(1, 180, value, 'FOV');
+         const { wrap, slider: widget, value_label } = createSliderWithLabel(1, 180, value, 'FOV');
          wrap.parent(root);
 
-         return slider;
+         return { widget, value_label };
       }
    },
    {
       name: 'rays',
       prop: 'value',
       create(root, value = MAX_RAYS) {
-         const { wrap, slider } = createSliderWithLabel(1, WIDTH, value, 'x-axis resolution');
+         const { wrap, slider: widget, value_label } = createSliderWithLabel(1, WIDTH, value, 'x-axis resolution');
          wrap.parent(root);
 
-         return slider;
+         return { widget, value_label };
       }
    },
    {
       name: 'wall_height_amp',
       prop: 'value',
       create(root, value = WALL_HEIGHT_AMP) {
-         const { wrap, slider } = createSliderWithLabel(0.01, 1, value, 'wall height', 0.01);
+         const { wrap, slider: widget, value_label } = createSliderWithLabel(0.01, 1, value, 'wall height', 0.01);
          wrap.parent(root);
 
-         return slider;
+         return { widget, value_label };
       }
    },
    {
       name: 'shading_type',
       prop: 'value',
       create(root, value = WALL_HEIGHT_AMP) {
-         const select = createSelect();
-         select.size(150);
+         const widget = createSelect();
+         widget.size(150);
 
-         select.option('no shading', SHADING_TYPE.NONE);
-         select.option('side shading', SHADING_TYPE.SIDE);
-         select.option('distance-based shading', SHADING_TYPE.DISTANCE);
+         widget.option('no shading', SHADING_TYPE.NONE);
+         widget.option('side shading', SHADING_TYPE.SIDE);
+         widget.option('distance-based shading', SHADING_TYPE.DISTANCE);
 
-         select.selected(value);
+         widget.selected(value);
 
-         const wrap = addLabel(select, 'shading type');
+         const { wrap } = addLabel(widget, 'shading type');
          wrap.parent(root);
 
-         return select;
+         return { widget };
       }
    },
    {
       name: 'fisheye_correction',
       prop: 'checked',
       create(root, value = false) {
-         const el = createCheckbox('fisheye correction', value);
-         el.parent(root);
+         const widget = createCheckbox('fisheye correction', value);
+         widget.parent(root);
 
-         return el;
+         return { widget };
       }
    },
    {
       name: 'show_textures',
       prop: 'checked',
       create(root, value = false) {
-         const el = createCheckbox('show textures', value);
-         el.parent(root);
+         const widget = createCheckbox('show textures', value);
+         widget.parent(root);
 
-         return el;
+         return { widget };
       }
    },
    {
       name: 'show_sprites',
       prop: 'checked',
       create(root, value = false) {
-         const el = createCheckbox('show sprites', value);
-         el.parent(root);
+         const widget = createCheckbox('show sprites', value);
+         widget.parent(root);
 
-         return el;
+         return { widget };
       }
    },
    {
       name: 'show_fps',
       prop: 'checked',
       create(root, value = false) {
-         const el = createCheckbox('show FPS', value);
-         el.parent(root);
+         const widget = createCheckbox('show FPS', value);
+         widget.parent(root);
 
-         return el;
+         return { widget };
       }
    },
    {
       name: 'debug_rays',
       prop: 'checked',
       create(root, value = false) {
-         const el = createCheckbox('show rays', value);
-         el.parent(root);
+         const widget = createCheckbox('show rays', value);
+         widget.parent(root);
 
-         return el;
+         return { widget };
       }
    },
    {
       name: 'debug_sdf',
       prop: 'checked',
       create(root, value = false) {
-         const el = createCheckbox('show SDF', value);
-         el.parent(root);
+         const widget = createCheckbox('show SDF', value);
+         widget.parent(root);
 
-         return el;
+         return { widget };
       }
    }
 ];
@@ -250,12 +257,13 @@ class GUI {
          const widget_name = widget.name;
          const widget_value = this._user_data[widget_name];
 
-         const _inst = widgets[i].create(this._root, widget_value);
+         const { widget: _inst, value_label } = widgets[i].create(this._root, widget_value);
 
          this._widgets.push({
             name: widget_name,
             value: _inst[widget.prop](),
-            valueProp: widgets[i].prop,
+            value_prop: widgets[i].prop,
+            value_label,
             _inst
          });
       }
@@ -355,12 +363,14 @@ class GUI {
          let isChanged = false;
 
          for (const widget of this._widgets) {
-            if (widget.value !== widget._inst[widget.valueProp]()) {
-               widget.value = widget._inst[widget.valueProp]();
+            if (widget.value !== widget._inst[widget.value_prop]()) {
+               widget.value = widget._inst[widget.value_prop]();
 
                const hook = this._hooks.find((hook) => hook.name === widget.name);
                if (hook && hook.getter !== widget.value) {
-                  hook.setter(this.get(widget.name));
+                  const new_value = this.get(widget.name);
+                  hook.setter(new_value);
+                  widget?.value_label?.html(new_value);
                }
 
                isChanged = true;

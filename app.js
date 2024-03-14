@@ -104,7 +104,7 @@ function setup() {
 
    UserUI.hook({
       type: 'button',
-      name: 'reset',
+      name: 'reset player position',
       handler: () => {
          Camera.set_pos(Scene.get_center_vec());
       }
