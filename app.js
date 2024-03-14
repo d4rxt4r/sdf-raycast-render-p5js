@@ -30,7 +30,7 @@ const Camera = new RayCamera({
    options: {
       accuracy: ACCURACY,
       steps: MAX_STEPS,
-      rays: UserUI.get('rays'),
+      resolution: UserUI.get('resolution'),
       fov: UserUI.get('fov'),
       wall_height_amp: UserUI.get('wall_height_amp'),
       fisheye_correction: UserUI.get('fisheye_correction'),
@@ -63,10 +63,10 @@ function setup() {
    });
    UserUI.hook({
       type: 'custom',
-      name: 'rays',
-      getter: () => Camera.get_option('rays'),
+      name: 'resolution',
+      getter: () => Camera.get_option('resolution'),
       setter: (value) => {
-         Camera.set_option('rays', value);
+         Camera.set_option('resolution', value);
          Camera.calc_viewport();
       }
    });

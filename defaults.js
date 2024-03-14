@@ -16,7 +16,7 @@ const FOV = 90;
 const TARGET_FPS = 60;
 const FOG = 200;
 const MAX_STEPS = 100;
-const MAX_RAYS = 120;
+const RESOLUTION = 100;
 
 const ACCURACY = 0.01;
 
@@ -43,7 +43,6 @@ export {
    FOG,
    FOV,
    TARGET_FPS,
-   MAX_RAYS,
    MAX_STEPS,
    ACCURACY,
    WALL_HEIGHT_AMP,
@@ -53,5 +52,6 @@ export {
    FLOOR_COLOR,
    CEILING_COLOR,
    PLAYER_SPEED,
-   ROTATE_SPEED
+   ROTATE_SPEED,
+   RESOLUTION
 };

@@ -28,16 +28,18 @@ class RayCamera {
       this.calc_viewport();
    }
 
+   /**
+    * Calculate the viewport dimensions based on the scene dimensions and resolution options.
+    */
    calc_viewport() {
-      this._start_ray_index = 0;
-      this._last_ray_index = this._options.rays;
+      this._viewport = {
+         w: int(this._scene.w * (this._options.resolution / 100)),
+         h: int(this._scene.h * (this._options.resolution / 100))
+      };
       this._plane_y = tan(deg_to_rad(this._options.fov) / 2);
-
-      this._view_buffer_len = this._options.rays + 1;
-      this._view_buffer = createImage(this._view_buffer_len, this._viewport.h);
+      this._view_buffer = createImage(this._viewport.w, this._viewport.h);
       this._view_buffer.loadPixels();
-
-      this._z_buffer = new Array(this._view_buffer_len);
+      this._z_buffer = new Array(this._viewport.w);
    }
 
    /**
@@ -154,18 +156,16 @@ class RayCamera {
     * @return {Object} Object containing start and end direction coordinates
     */
    _get_floor_dir() {
-      const start_dir_x = (this._dir_vec.x + this._plane_vec.x) * FLOOR_TEX_SIZE;
-      const start_dir_y = (this._dir_vec.y + this._plane_vec.y) * FLOOR_TEX_SIZE;
+      const { x: dirX, y: dirY } = this._dir_vec;
+      const { x: planeX, y: planeY } = this._plane_vec;
 
-      const end_dir_x = (this._dir_vec.x - this._plane_vec.x) * FLOOR_TEX_SIZE;
-      const end_dir_y = (this._dir_vec.y - this._plane_vec.y) * FLOOR_TEX_SIZE;
+      const start_dir_x = (dirX + planeX) * FLOOR_TEX_SIZE;
+      const start_dir_y = (dirY + planeY) * FLOOR_TEX_SIZE;
 
-      return {
-         start_dir_x,
-         start_dir_y,
-         end_dir_x,
-         end_dir_y
-      };
+      const end_dir_x = (dirX - planeX) * FLOOR_TEX_SIZE;
+      const end_dir_y = (dirY - planeY) * FLOOR_TEX_SIZE;
+
+      return { start_dir_x, start_dir_y, end_dir_x, end_dir_y };
    }
 
    _render_floor(ray_collisions, view_buffer) {
@@ -212,30 +212,31 @@ class RayCamera {
                ? ceiling_texture.half_raw_pixels[ceiling_texture.h * ty + tx]
                : CEILING_COLOR;
 
-            set_image_pixel(x, y, floor_color, view_buffer.pixels, this._view_buffer_len);
-            set_image_pixel(x, this._viewport.h - y - 1, ceiling_color, view_buffer.pixels, this._view_buffer_len);
+            set_image_pixel(x, y, floor_color, view_buffer.pixels, this._viewport.w);
+            set_image_pixel(x, this._viewport.h - y - 1, ceiling_color, view_buffer.pixels, this._viewport.w);
          }
       }
    }
 
    _render_walls(ray_collisions, view_buffer, z_buffer) {
       const collisions_count = ray_collisions.length;
+
       for (let scanLine = 0; scanLine < collisions_count; scanLine++) {
          const line_data = ray_collisions[scanLine];
          const distance = this._options.fisheye_correction ? line_data.perp_distance : line_data.distance;
 
-         const line_height = int((this._scene.h / distance) * (this._scene.h * this._options.wall_height_amp));
-         let draw_start = int(-line_height / 2 + this._scene.h / 2);
+         const line_height = int((this._viewport.h / distance) * (this._viewport.h * this._options.wall_height_amp));
+         let draw_start = int(-line_height / 2 + this._viewport.h / 2);
          if (draw_start < 0) draw_start = 0;
          let draw_end = draw_start + line_height;
-         if (draw_end >= this._scene.h) draw_end = this._scene.h - 1;
+         if (draw_end >= this._viewport.h) draw_end = this._viewport.h - 1;
 
          if (this._options.show_textures && line_data.texture_id !== undefined && line_data.texture_id !== null) {
             const texture = this._scene.textures[line_data.texture_id];
             const step = (1.0 * texture.h) / line_height;
 
             const tex_x = int(line_data.tex_x_pos);
-            let tex_pos = (draw_start - this._scene.h / 2 + line_height / 2) * step;
+            let tex_pos = (draw_start - this._viewport.h / 2 + line_height / 2) * step;
 
             for (let y = draw_start; y < draw_end; y++) {
                const texY = int(tex_pos) & (texture.h - 1);
@@ -253,31 +254,19 @@ class RayCamera {
                   return;
                }
 
-               set_image_pixel(
-                  collisions_count - scanLine - 1,
-                  y,
-                  tex_color,
-                  view_buffer.pixels,
-                  this._view_buffer_len
-               );
+               set_image_pixel(collisions_count - scanLine - 1, y, tex_color, view_buffer.pixels, this._viewport.w);
             }
          } else {
             let wall_color = line_data.color;
             if (this._options.shading_type === SHADING_TYPE.DISTANCE) {
-               wall_color = lerpColor(line_data.color, BLACK, line_data.distance / this._scene.h);
+               wall_color = lerpColor(line_data.color, BLACK, line_data.distance / this._viewport.h);
             }
             if (this._options.shading_type === SHADING_TYPE.SIDE && line_data.is_side_hit) {
                wall_color = line_data.half_color;
             }
 
             for (let y = draw_start; y < draw_end; y++) {
-               set_image_pixel(
-                  collisions_count - scanLine - 1,
-                  y,
-                  wall_color,
-                  view_buffer.pixels,
-                  this._view_buffer_len
-               );
+               set_image_pixel(collisions_count - scanLine - 1, y, wall_color, view_buffer.pixels, this._viewport.w);
             }
          }
 
@@ -307,10 +296,10 @@ class RayCamera {
          //                                                             ^ idk y i need to inverse it here
 
          const width = ray_collisions.length - 1;
-         const height = this._scene.h;
+         const height = this._viewport.h;
 
          const sprite_screen_x = int((width / 2) * (1 - transform_x / transform_y));
-         const sprite_height = abs(int(height / transform_y)) * (this._scene.h * this._options.wall_height_amp);
+         const sprite_height = abs(int(height / transform_y)) * (height * this._options.wall_height_amp);
 
          let draw_start_y = int(-sprite_height / 2 + height / 2);
          if (draw_start_y < 0) draw_start_y = 0;
@@ -318,7 +307,7 @@ class RayCamera {
          if (draw_end_y >= height) draw_end_y = height - 1;
 
          const _sprite_width = abs(int(height / transform_y)) * (this._viewport.h * this._options.wall_height_amp);
-         const sprite_width = int(map_range(_sprite_width, 0, this._scene.w, 0, width));
+         const sprite_width = int(map_range(_sprite_width, 0, this._viewport.w, 0, width));
          let draw_start_x = int(-sprite_width / 2 + sprite_screen_x);
          if (draw_start_x < 0) draw_start_x = 0;
          let draw_end_x = int(sprite_width / 2 + sprite_screen_x);
@@ -341,11 +330,11 @@ class RayCamera {
                      continue;
                   }
 
-                  const old_color = get_image_pixel(stripe, y, view_buffer.pixels, this._view_buffer_len);
+                  const old_color = get_image_pixel(stripe, y, view_buffer.pixels, this._viewport.w);
                   // view_buffer.set(stripe, y, clr);
-                  // set_image_pixel(stripe, y, clr, view_buffer.pixels, this._view_buffer_len);
+                  set_image_pixel(stripe, y, clr, view_buffer.pixels, this._viewport.w);
                   // const new_color = average_colors(old_color, clr);
-                  // set_image_pixel(stripe, y, new_color, view_buffer.pixels, this._view_buffer_len);
+                  // set_image_pixel(stripe, y, new_color, view_buffer.pixels, this._viewport.w);
                }
             }
          }
@@ -364,13 +353,9 @@ class RayCamera {
       if (this._options.show_sprites) {
          this._render_sprites(ray_collisions, this._view_buffer, this._z_buffer);
       }
-
       this._view_buffer.updatePixels();
 
-      push();
-      // translate(0, this._scene.h);
-      image(this._view_buffer, 0, 0, this._viewport.w, this._viewport.h);
-      pop();
+      image(this._view_buffer, 0, 0, this._scene.w, this._scene.h);
    }
 
    /**
@@ -386,8 +371,8 @@ class RayCamera {
       let total_ray_distance;
       let wall_collision_data = {};
 
-      for (let ray = this._start_ray_index; ray <= this._last_ray_index; ray++) {
-         const camera_x = (2 * ray) / this._options.rays - 1;
+      for (let ray = 0; ray < this._viewport.w; ray++) {
+         const camera_x = (2 * ray) / this._viewport.w - 1;
          const ray_dir = createVector(
             this._dir_vec.x + this._plane_vec.x * camera_x,
             this._dir_vec.y + this._plane_vec.y * camera_x
@@ -434,7 +419,7 @@ class RayCamera {
                   stroke(0, 255, 0, 0.4);
                   circle(ray_step_vec.x, ray_step_vec.y, wall_collision_data.distance * 2);
                }
-               if ((ray === this._start_ray_index || ray === this._last_ray_index - 1) && i) {
+               if ((ray === 0 || ray === this._viewport.w - 1) && i) {
                   stroke(0, 255, 0, 1);
                   text(`${i}`, ray_step_vec.x, ray_step_vec.y);
                }
@@ -448,7 +433,7 @@ class RayCamera {
             const next_ray_step_x = ray_dir.x + this._pos_vec.x;
             const next_ray_step_y = ray_dir.y + this._pos_vec.y;
 
-            if (this._options.debug_rays || ray === this._start_ray_index || ray === this._last_ray_index - 1) {
+            if (this._options.debug_rays || ray === 0 || ray === this._viewport.w - 1) {
                push();
 
                stroke(0, 255, 0, 0.4);

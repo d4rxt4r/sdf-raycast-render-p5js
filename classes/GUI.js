@@ -1,4 +1,4 @@
-import { WIDTH, SHADING_TYPE, FOV, TARGET_FPS, MAX_RAYS, WALL_HEIGHT_AMP } from 'defaults';
+import { SHADING_TYPE, FOV, TARGET_FPS, WALL_HEIGHT_AMP, RESOLUTION } from 'defaults';
 import { LEVEL_LIST } from 'levels';
 
 /**
@@ -39,6 +39,12 @@ function createSliderWithLabel(start, end, current, label, step = 1) {
    return { wrap, slider, value_label };
 }
 
+/**
+ * Creates a user button with the given name and event handler.
+ * @param {string} name - The name of the button
+ * @param {function} handler - The event handler for the button
+ * @return {object} The created button
+ */
 function createUserButton(name, handler) {
    const button = createButton(name);
    button.mousePressed(handler);
@@ -71,20 +77,20 @@ const WIDGETS = [
       }
    },
    {
-      name: 'fov',
+      name: 'resolution',
       prop: 'value',
-      create(root, value = FOV) {
-         const { wrap, slider: widget, value_label } = createSliderWithLabel(1, 180, value, 'FOV');
+      create(root, value = RESOLUTION) {
+         const { wrap, slider: widget, value_label } = createSliderWithLabel(1, 100, value, 'render resolution');
          wrap.parent(root);
 
          return { widget, value_label };
       }
    },
    {
-      name: 'rays',
+      name: 'fov',
       prop: 'value',
-      create(root, value = MAX_RAYS) {
-         const { wrap, slider: widget, value_label } = createSliderWithLabel(1, WIDTH, value, 'x-axis resolution');
+      create(root, value = FOV) {
+         const { wrap, slider: widget, value_label } = createSliderWithLabel(1, 180, value, 'FOV');
          wrap.parent(root);
 
          return { widget, value_label };

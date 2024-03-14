@@ -1,13 +1,14 @@
 FIXME:
 
+[ ] fix wall height and remove setting
+[ ] wall and ceiling speed is different relative to walls
+
 [ ] is_side_hit is wrong than looking straight up/down/left/right
-[ ] side textures are drown black from certain perspectives
+[ ] side textures are drown black from certain perspectives (x-axis)
 [ ] triangles 31, 32 stopped working somehow
 [ ] sprites size is discrete, use floats?
 [ ] sprites x = 0 are not drawn
 [ ] sprites are not drawn ar x-res > 50% wtf lol
-[ ] fix wall height and remove setting
-[ ] wall and ceiling speed is different relative to walls
 
 Possible performance improvements:
 
@@ -26,7 +27,6 @@ Possible performance improvements:
 
 TODO:
 
--  make resolution proportional
 -  add minimap
 -  add side shading to all objects
 -  add texture to all objects
@@ -37,3 +37,4 @@ TODO:
 -  connect nearest boxes to one object
 -  make entities a class to give them modify attrs
 -  add more complex shapes
+-  resize window events
