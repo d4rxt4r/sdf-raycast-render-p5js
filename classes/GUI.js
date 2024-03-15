@@ -202,7 +202,6 @@ export class GUI {
    /**
     * Creates the root of the Debug Menu and adds it to the P5.js canvas.
     * @private
-    * @return {void}
     */
    _create_root() {
       this._root = createDiv()
@@ -221,7 +220,6 @@ export class GUI {
    /**
     * Serializes the widget data and stores it in the local storage.
     * @private
-    * @returns {void}
     */
    _serialize() {
       const ui_data = {};
@@ -243,7 +241,6 @@ export class GUI {
    /**
     * Creates the widgets and adds them to the GUI.
     * @param {Array} widgets - An array of widget objects.
-    * @returns {void}
     */
    create(widgets) {
       cursor();
@@ -274,7 +271,6 @@ export class GUI {
     * If the GUI is currently visible, it will be removed from the page.
     * If it is not visible, it will be created and added to the page.
     *
-    * @returns {void}
     */
    toggle() {
       if (this._root) {
@@ -355,7 +351,6 @@ export class GUI {
     * If a widget value changes, it updates the widget value and calls the setter function for the corresponding hook.
     * If any widget value changes, it serializes the GUI.
     *
-    * @returns {void}
     */
    update() {
       if (this._root) {

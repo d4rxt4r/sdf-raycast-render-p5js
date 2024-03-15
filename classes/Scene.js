@@ -1,79 +1,151 @@
 import { gen_obj } from 'objects';
 import { TEX_WIDTH, TEX_HEIGHT } from 'textures';
 
+/**
+ * @typedef {Object} SDFSceneOptions
+ *
+ * @property {number} id - the id of the level
+ * @property {number} width - the width of the level
+ * @property {number} height - the height of the level
+ * @property {Object} level_data - the data containing raw_data and sprites for the level
+ * @property {Object} textures - the textures for the level
+ */
+
+/**  The SDFScene class represents a class containing all information about objects and sprites for the level. **/
 export class SDFScene {
+   /**
+    * Constructs a new SDFScene.
+    *
+    * @param {SDFSceneOptions} options - the options for the SDFScene.
+    */
    constructor(options) {
-      this.init(options);
-   }
-
-   init({ width, height, level_data, id }) {
-      this._id = id;
-
-      const { data: raw_data = [], entities = [] } = level_data;
-      this._raw_data = [...raw_data];
-      this._entities = [...entities];
-
-      this._width = width;
-      this._height = height;
-
+      /**
+       * The id of the level.
+       * @type {number}
+       */
+      this.id = 0;
+      /**
+       * The width of the level.
+       * @type {number}
+       */
+      this.width = 0;
+      /**
+       * The height of the level.
+       * @type {number}
+       */
+      this.height = 0;
+      /**
+       * The width of a tile in the level.
+       * @type {number}
+       */
       this.tile_width = TEX_WIDTH;
+      /**
+       * The height of a tile in the level.
+       * @type {number}
+       */
       this.tile_height = TEX_HEIGHT;
+      /**
+       * The sprites for the level.
+       * @type {Array.<Object>}
+       */
+      this.sprites = [];
+      /**
+       * The objects in the level.
+       * @type {Array.<Object>}
+       */
+      this.objects = [];
+      /**
+       * The textures for the level.
+       * @type {Object}
+       */
+      this.textures = options.textures;
+      /**
+       * The raw data for the level.
+       * @type {Array.<Object>}
+       * @private
+       */
+      this._raw_data = [];
 
-      this._objects = [];
+      this._init(options);
+   }
+
+   /**
+    * Initialize the level with the specified width, height, level data, and id.
+    *
+    * @param {SDFSceneOptions} options - the options for the SDFScene.
+    * @private
+    */
+   _init(options) {
+      const { id, width, height, level_data } = options;
+      const { data = [], entities = [] } = level_data;
+
+      this.id = id;
+      this.width = width;
+      this.height = height;
+      this.sprites = [...entities];
+      this._raw_data = [...data];
+
       this._spawn_objects();
-      this._set_entities_scene_coordinates();
+      this._set_sprites_scene_coordinates();
    }
 
-   get id() {
-      return this._id;
-   }
-
+   /**
+    * Spawn objects based on the raw data.
+    *
+    * @private
+    */
    _spawn_objects() {
-      this._objects = [];
+      this.objects = [];
       for (let row = 0; row < this._raw_data.length; row++) {
          for (let col = 0; col < this._raw_data[row].length; col++) {
             const type = this._raw_data[row][col];
             if (type) {
-               this._objects.push(gen_obj(type, col, row, this.tile_width, this.tile_height));
+               this.objects.push(gen_obj(type, col, row, this.tile_width, this.tile_height, this.textures));
             }
          }
       }
    }
 
-   _set_entities_scene_coordinates() {
-      this._entities.forEach((entity) => {
-         entity.x = (entity.x - 1) * this.tile_width + this.tile_width / 2;
-         entity.y = (entity.y - 1) * this.tile_height + this.tile_height / 2;
+   /**
+    * Sets the scene coordinates for all sprites.
+    *
+    * @private
+    */
+   _set_sprites_scene_coordinates() {
+      this.sprites.forEach((sprites) => {
+         sprites.x = (sprites.x - 1) * this.tile_width + this.tile_width / 2;
+         sprites.y = (sprites.y - 1) * this.tile_height + this.tile_height / 2;
       });
    }
 
-   change_level(rawMap) {
-      this.init(rawMap);
-      this._spawn_objects();
+   /**
+    * Change the level of the scene.
+    *
+    * @param {Array} raw_map - The raw map data for the new level.
+    */
+   change_level(raw_map) {
+      this._init(raw_map);
    }
 
-   get_objects() {
-      return this._objects;
-   }
-
-   get_sprites() {
-      return this._entities;
-   }
-
+   /**
+    * Get the center vector of the scene.
+    *
+    * @return {p5.Vector} The center vector of the scene.
+    */
    get_center_vec() {
       return createVector(this._width / 2, this._height / 2);
    }
 
+   /**
+    * Renders all objects and sprites in the scene.
+    */
    render() {
-      push();
-
-      this._objects.forEach((object) => object.render());
-
-      this._entities.forEach((entity) => {
+      // push();
+      this.objects.forEach((object) => object.render());
+      this.sprites.forEach((sprite) => {
          fill(0, 0, 255);
-         circle(entity.x, entity.y, 10);
+         circle(sprite.x, sprite.y, 10);
       });
-
-      pop();
+      // pop();
    }
 }

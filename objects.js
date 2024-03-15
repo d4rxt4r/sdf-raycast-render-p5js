@@ -4,7 +4,7 @@ import SDFTriangle from './objects/Triangle.js';
 
 import { WHITE } from 'textures';
 
-function gen_obj(type, col, row, tileWidth, tileHeight) {
+function gen_obj(type, col, row, tileWidth, tileHeight, textures) {
    if (!type) {
       throw new Error('Unrecognized Object Type');
    }
@@ -12,7 +12,7 @@ function gen_obj(type, col, row, tileWidth, tileHeight) {
    if (Number(String(type).charAt(0)) === 1) {
       const tex_id = String(type).length > 1 ? Number(String(type).substring(1)) : 0;
 
-      return new SDFBox(col * tileWidth, row * tileHeight, tileWidth, tileHeight, WHITE, tex_id);
+      return new SDFBox(col * tileWidth, row * tileHeight, tileWidth, tileHeight, WHITE, textures, tex_id);
    }
 
    if (type === 2) {
