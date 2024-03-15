@@ -108,7 +108,8 @@ const TEX_PATHS = [
    'textures/colorstone.png',
    'textures/pillar.png',
    'textures/barrel.png',
-   'textures/greenlight.png'
+   'textures/greenlight.png',
+   'textures/greystone.png',
 ];
 const TEX_GENS = [TEX_RED_CROSS, TEX_XOR_GREEN, TEX_YELLOW_GRAD];
 const TEX_IMAGES = [];

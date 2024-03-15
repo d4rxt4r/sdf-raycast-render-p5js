@@ -32,7 +32,6 @@ const Camera = new RayCamera({
       steps: MAX_STEPS,
       resolution: UserUI.get('resolution'),
       fov: UserUI.get('fov'),
-      wall_height_amp: UserUI.get('wall_height_amp'),
       fisheye_correction: UserUI.get('fisheye_correction'),
       debug_rays: UserUI.get('debug_rays'),
       debug_sdf: UserUI.get('debug_sdf'),
@@ -96,7 +95,6 @@ function setup() {
       setter: 'set_option'
    });
    UserUI.hook({ type: 'option', name: 'shading_type', object: Camera, getter: 'get_option', setter: 'set_option' });
-   UserUI.hook({ type: 'option', name: 'wall_height_amp', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'show_textures', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'show_sprites', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'debug_rays', object: Camera, getter: 'get_option', setter: 'set_option' });

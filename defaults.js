@@ -14,13 +14,10 @@ const TEX_HEIGHT = 128;
 
 const FOV = 90;
 const TARGET_FPS = 60;
-const FOG = 200;
 const MAX_STEPS = 100;
 const RESOLUTION = 100;
 
 const ACCURACY = 0.01;
-
-const WALL_HEIGHT_AMP = 0.02;
 
 const SHADING_TYPE = {
    NONE: 0,
@@ -40,12 +37,10 @@ export {
    HEIGHT,
    TEX_HEIGHT,
    TEX_WIDTH,
-   FOG,
    FOV,
    TARGET_FPS,
    MAX_STEPS,
    ACCURACY,
-   WALL_HEIGHT_AMP,
    SHADING_TYPE,
    BLACK,
    WHITE,

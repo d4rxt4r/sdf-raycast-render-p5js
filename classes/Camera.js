@@ -2,10 +2,9 @@ import { SHADING_TYPE, BLACK, PLAYER_SPEED, ROTATE_SPEED, FLOOR_COLOR, CEILING_C
 import { deg_to_rad, sin, tan, int, abs, map_range } from 'math_utils';
 import { get_image_pixel, set_image_pixel, average_colors } from 'textures';
 
-const FLOOR_TEXTURE = 4;
+const FLOOR_TEXTURE = 2;
+const FLOOR_TEXTURE2 = 8;
 const CEILING_TEXTURE = 3;
-const FLOOR_TEXT_AMP = 1;
-const FLOOR_TEX_SIZE = 1 / FLOOR_TEXT_AMP;
 
 class RayCamera {
    constructor({ scene, viewport, options }) {
@@ -37,6 +36,8 @@ class RayCamera {
          h: int(this._scene.h * (this._options.resolution / 100))
       };
       this._plane_y = tan(deg_to_rad(this._options.fov) / 2);
+      this._height_amp = 100;
+
       this._view_buffer = createImage(this._viewport.w, this._viewport.h);
       this._view_buffer.loadPixels();
       this._z_buffer = new Array(this._viewport.w);
@@ -159,61 +160,80 @@ class RayCamera {
       const { x: dirX, y: dirY } = this._dir_vec;
       const { x: planeX, y: planeY } = this._plane_vec;
 
-      const start_dir_x = (dirX + planeX) * FLOOR_TEX_SIZE;
-      const start_dir_y = (dirY + planeY) * FLOOR_TEX_SIZE;
+      const start_dir_x = dirX + planeX;
+      const start_dir_y = dirY + planeY;
 
-      const end_dir_x = (dirX - planeX) * FLOOR_TEX_SIZE;
-      const end_dir_y = (dirY - planeY) * FLOOR_TEX_SIZE;
+      const end_dir_x = dirX - planeX;
+      const end_dir_y = dirY - planeY;
 
       return { start_dir_x, start_dir_y, end_dir_x, end_dir_y };
    }
 
    _render_floor(ray_collisions, view_buffer) {
-      const floor_texture = this._scene.textures[FLOOR_TEXTURE];
+      let x_pos, y_pos;
+      let cell_x, cell_y;
+      let tex_x, tex_y;
+      let ceiling_y;
+      let floor_texture, floor_color, ceiling_color;
+
+      floor_texture = this._scene.textures[FLOOR_TEXTURE];
       const ceiling_texture = this._scene.textures[CEILING_TEXTURE];
 
       const { start_dir_x, start_dir_y, end_dir_x, end_dir_y } = this._get_floor_dir();
 
-      const start_tex_x = (this._pos_vec.x / floor_texture.w) * FLOOR_TEX_SIZE;
-      const start_tex_y = (this._pos_vec.y / floor_texture.h) * FLOOR_TEX_SIZE;
+      const start_x = this._pos_vec.x / floor_texture.w;
+      const start_y = this._pos_vec.y / floor_texture.h;
 
+      // vertical position of the camera
       const z_pos = this._viewport.h / 2;
 
-      let tex_x, tex_y;
-      let cell_x, cell_y;
-      let tx, ty;
+      for (let y = int(z_pos); y < this._viewport.h; y++) {
+         ceiling_y = this._viewport.h - 1 - y;
 
-      const view_port_center = int(this._viewport.h / 2);
+         if (this._options.show_textures) {
+            // current y position compared to the center of the screen (the horizon)
+            const horizon_height = int(y - z_pos);
+            // horizontal distance from the camera to the floor for the current row.
+            // 0.5 is the z position exactly in the middle between floor and ceiling.
+            const row_dist = z_pos / horizon_height;
 
-      for (let y = view_port_center; y <= this._viewport.h; y++) {
-         const horizon_height = int(y - z_pos);
-         const row_dist = z_pos / horizon_height;
+            // calculate the real world step vector we have to add for each x (parallel to camera plane)
+            // adding step by step avoids multiplications with a weight in the inner loop
+            const step_x = (row_dist * (end_dir_x - start_dir_x)) / this._viewport.w;
+            const step_y = (row_dist * (end_dir_y - start_dir_y)) / this._viewport.w;
 
-         const tex_step_x = (row_dist * (end_dir_x - start_dir_x)) / ray_collisions.length;
-         const tex_step_y = (row_dist * (end_dir_y - start_dir_y)) / ray_collisions.length;
+            // real world coordinates of the leftmost column. This will be updated as we step to the right.
+            x_pos = start_x + row_dist * start_dir_x;
+            y_pos = start_y + row_dist * start_dir_y;
 
-         tex_x = start_tex_x + row_dist * start_dir_x;
-         tex_y = start_tex_y + row_dist * start_dir_y;
+            for (let x = 0; x < this._viewport.w; x++) {
+               // the cell coord is got from the integer parts of x_pos and y_pos
+               cell_x = int(x_pos);
+               cell_y = int(y_pos);
 
-         for (let x = 0; x <= ray_collisions.length; x++) {
-            cell_x = int(tex_x);
-            cell_y = int(tex_y);
+               // get the texture coordinate from the fractional part
+               tex_x = int(floor_texture.w * (x_pos - cell_x)) & (floor_texture.w - 1);
+               tex_y = int(floor_texture.h * (y_pos - cell_y)) & (floor_texture.h - 1);
 
-            tx = int(floor_texture.w * (tex_x - cell_x)) & (floor_texture.w - 1);
-            ty = int(floor_texture.h * (tex_y - cell_y)) & (floor_texture.h - 1);
+               x_pos += step_x;
+               y_pos += step_y;
 
-            tex_x += tex_step_x;
-            tex_y += tex_step_y;
+               ceiling_color = ceiling_texture.half_raw_pixels[ceiling_texture.h * tex_y + tex_x];
+               if ((cell_x + cell_y) % 2 === 0) {
+                  floor_color = this._scene.textures[FLOOR_TEXTURE].half_raw_pixels[floor_texture.h * tex_y + tex_x];
+               } else {
+                  floor_color = this._scene.textures[FLOOR_TEXTURE2].half_raw_pixels[ceiling_texture.h * tex_y + tex_x];
+               }
 
-            const floor_color = this._options.show_textures
-               ? floor_texture.half_raw_pixels[floor_texture.h * ty + tx]
-               : FLOOR_COLOR;
-            const ceiling_color = this._options.show_textures
-               ? ceiling_texture.half_raw_pixels[ceiling_texture.h * ty + tx]
-               : CEILING_COLOR;
-
-            set_image_pixel(x, y, floor_color, view_buffer.pixels, this._viewport.w);
-            set_image_pixel(x, this._viewport.h - y - 1, ceiling_color, view_buffer.pixels, this._viewport.w);
+               set_image_pixel(x, y, floor_color, view_buffer.pixels, this._viewport.w);
+               set_image_pixel(x, ceiling_y, ceiling_color, view_buffer.pixels, this._viewport.w);
+            }
+         } else {
+            for (let x = 0; x < ray_collisions.length; x++) {
+               // const ceiling_color =
+               set_image_pixel(x, y, FLOOR_COLOR, view_buffer.pixels, this._viewport.w);
+               set_image_pixel(x, ceiling_y, CEILING_COLOR, view_buffer.pixels, this._viewport.w);
+            }
          }
       }
    }
@@ -225,13 +245,19 @@ class RayCamera {
          const line_data = ray_collisions[scanLine];
          const distance = this._options.fisheye_correction ? line_data.perp_distance : line_data.distance;
 
-         const line_height = int((this._viewport.h / distance) * (this._viewport.h * this._options.wall_height_amp));
+         const line_height = int(this._viewport.h / (distance / this._height_amp));
+
          let draw_start = int(-line_height / 2 + this._viewport.h / 2);
          if (draw_start < 0) draw_start = 0;
          let draw_end = draw_start + line_height;
          if (draw_end >= this._viewport.h) draw_end = this._viewport.h - 1;
 
-         if (this._options.show_textures && line_data.texture_id !== undefined && line_data.texture_id !== null) {
+         if (this._options.show_textures) {
+            if (!(line_data.texture_id !== undefined && line_data.texture_id !== null)) {
+               console.error('MISSING TEXTURE');
+               return;
+            }
+
             const texture = this._scene.textures[line_data.texture_id];
             const step = (1.0 * texture.h) / line_height;
 
@@ -299,14 +325,14 @@ class RayCamera {
          const height = this._viewport.h;
 
          const sprite_screen_x = int((width / 2) * (1 - transform_x / transform_y));
-         const sprite_height = abs(int(height / transform_y)) * (height * this._options.wall_height_amp);
+         const sprite_height = abs(int(height / transform_y));
 
          let draw_start_y = int(-sprite_height / 2 + height / 2);
          if (draw_start_y < 0) draw_start_y = 0;
          let draw_end_y = int(sprite_height / 2 + height / 2);
          if (draw_end_y >= height) draw_end_y = height - 1;
 
-         const _sprite_width = abs(int(height / transform_y)) * (this._viewport.h * this._options.wall_height_amp);
+         const _sprite_width = abs(int(height / transform_y));
          const sprite_width = int(map_range(_sprite_width, 0, this._viewport.w, 0, width));
          let draw_start_x = int(-sprite_width / 2 + sprite_screen_x);
          if (draw_start_x < 0) draw_start_x = 0;

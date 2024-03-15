@@ -1,4 +1,4 @@
-import { SHADING_TYPE, FOV, TARGET_FPS, WALL_HEIGHT_AMP, RESOLUTION } from 'defaults';
+import { SHADING_TYPE, FOV, TARGET_FPS, RESOLUTION } from 'defaults';
 import { LEVEL_LIST } from 'levels';
 
 /**
@@ -97,19 +97,9 @@ const WIDGETS = [
       }
    },
    {
-      name: 'wall_height_amp',
-      prop: 'value',
-      create(root, value = WALL_HEIGHT_AMP) {
-         const { wrap, slider: widget, value_label } = createSliderWithLabel(0.01, 1, value, 'wall height', 0.01);
-         wrap.parent(root);
-
-         return { widget, value_label };
-      }
-   },
-   {
       name: 'shading_type',
       prop: 'value',
-      create(root, value = WALL_HEIGHT_AMP) {
+      create(root, value = SHADING_TYPE.NONE) {
          const widget = createSelect();
          widget.size(150);
 
