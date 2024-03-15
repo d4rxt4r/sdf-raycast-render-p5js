@@ -99,8 +99,8 @@ function setup() {
 }
 
 function draw() {
-   // Scene.render();
    Camera.march(Scene.objects);
+   // Scene.render();
 
    UserUI.update();
 
