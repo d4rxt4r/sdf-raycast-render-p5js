@@ -1,9 +1,8 @@
 import BaseObject from './Base.js';
-import { TEXTURES_LIST } from 'textures';
 import { map_range, max, sqrt, abs } from 'math_utils';
 
 class SDFBox extends BaseObject {
-   constructor(x, y, width, height, color, texture_id) {
+   constructor(x, y, width, height, color, textures, texture_id) {
       super(x, y);
 
       this._w = width;
@@ -11,7 +10,7 @@ class SDFBox extends BaseObject {
       this._color = color;
       this._side_color = this._color.map((l, i) => (i === 3 ? l : l / 2));
       this._texture_id = texture_id;
-      this._texture = TEXTURES_LIST[texture_id];
+      this._texture = textures[texture_id];
    }
 
    collide(cx, cy) {

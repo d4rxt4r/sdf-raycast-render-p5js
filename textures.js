@@ -127,6 +127,8 @@ async function preload_textures() {
       ...TEX_IMAGES.map((image_data) => gen_tex_from_img(TEX_WIDTH, TEX_HEIGHT, image_data)),
       ...TEX_GENS.map((tex_gen) => gen_tex(TEX_WIDTH, TEX_HEIGHT, tex_gen))
    );
+
+   return TEXTURES_LIST;
 }
 
 /**

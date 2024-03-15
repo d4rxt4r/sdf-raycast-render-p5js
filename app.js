@@ -1,44 +1,33 @@
 import { FRAME_RATE, USE_WEBGL, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'const';
-import { TEXTURES_LIST, preload_textures } from 'textures';
+import { preload_textures } from 'textures';
 import { GUI, SDFScene, RayCamera } from 'classes';
 import { LEVEL_LIST } from 'levels';
 import { round } from 'math_utils';
 
-await preload_textures();
+const textures = await preload_textures();
 
-// REACTIVE GUI
 const UserUI = new GUI();
 
 const Scene = new SDFScene({
+   id: UserUI.get('level_select'),
    width: WIDTH,
    height: HEIGHT,
    level_data: LEVEL_LIST[UserUI.get('level_select')],
-   id: UserUI.get('level_select')
+   textures
 });
 
 const Camera = new RayCamera({
-   scene: {
-      w: WIDTH,
-      h: HEIGHT,
-      sprites: Scene.get_sprites(),
-      textures: TEXTURES_LIST
-   },
-   viewport: {
-      w: WIDTH,
-      h: HEIGHT
-   },
-   options: {
-      accuracy: ACCURACY,
-      steps: MAX_STEPS,
-      resolution: UserUI.get('resolution'),
-      fov: UserUI.get('fov'),
-      fisheye_correction: UserUI.get('fisheye_correction'),
-      debug_rays: UserUI.get('debug_rays'),
-      debug_sdf: UserUI.get('debug_sdf'),
-      shading_type: UserUI.get('shading_type'),
-      show_textures: UserUI.get('show_textures'),
-      show_sprites: UserUI.get('show_sprites')
-   }
+   scene: Scene,
+   accuracy: ACCURACY,
+   steps: MAX_STEPS,
+   resolution: UserUI.get('resolution'),
+   fov: UserUI.get('fov'),
+   fisheye_correction: UserUI.get('fisheye_correction'),
+   debug_rays: UserUI.get('debug_rays'),
+   debug_sdf: UserUI.get('debug_sdf'),
+   shading_type: UserUI.get('shading_type'),
+   show_textures: UserUI.get('show_textures'),
+   show_sprites: UserUI.get('show_sprites')
 });
 
 function setup() {
@@ -56,7 +45,7 @@ function setup() {
             level_data: LEVEL_LIST[value],
             id: value
          });
-         Camera.set_sprites(Scene.get_sprites());
+         Camera.set_sprites(Scene.sprites);
          Camera.set_pos(Scene.get_center_vec());
       }
    });
@@ -111,7 +100,7 @@ function setup() {
 
 function draw() {
    // Scene.render();
-   Camera.march(Scene.get_objects());
+   Camera.march(Scene.objects);
 
    UserUI.update();
 
