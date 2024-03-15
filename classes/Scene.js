@@ -11,7 +11,7 @@ import { TEX_WIDTH, TEX_HEIGHT } from 'textures';
  * @property {Object} textures - the textures for the level
  */
 
-/**  The SDFScene class represents a class containing all information about objects and sprites for the level. **/
+/*  The SDFScene class represents a class containing all information about objects and sprites for the level. */
 export class SDFScene {
    /**
     * Constructs a new SDFScene.

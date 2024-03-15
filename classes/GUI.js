@@ -3,11 +3,19 @@ import { LEVEL_LIST } from 'levels';
 import { SHADING_TYPE } from 'textures';
 
 /**
+ * @typedef ElementWithLabel
+ *
+ * @property {p5.Element} wrap - The wrapping element that contains the label and the original element.
+ * @property {p5.Element} value_label - The label element.
+ */
+
+/**
  * Adds a label to an element.
+ *
  * @param {p5.Element} element - The element to which the label should be added.
  * @param {string} label - The text to display as the label.
  * @param {number} current_value - The current value of the slider.
- * @returns {p5.Element} The wrapping element that contains the label and the original element.
+ * @returns {ElementWithLabel} The wrapping element that contains the label and the original element.
  */
 function addLabel(element, label, current_value) {
    const wrap = createDiv().style('display', 'flex').style('align-items', 'center').style('gap', '8px');
@@ -19,17 +27,26 @@ function addLabel(element, label, current_value) {
    element.parent(wrap);
    createSpan(label).parent(wrap);
 
-   return { value_label, wrap };
+   return { wrap, value_label };
 }
 
 /**
+ * @typedef SliderWithLabel
+ *
+ * @property {p5.Element} wrap
+ * @property {p5.Element} slider
+ * @property {p5.Element} value_label
+ */
+
+/**
  * Creates a slider with a label.
+ *
  * @param {number} start - The starting value of the slider.
  * @param {number} end - The ending value of the slider.
  * @param {number} current - The current value of the slider.
  * @param {string} label - The text label to display next to the slider.
  * @param {number} [step=1] - The step size of the slider.
- * @returns {object} - An object containing the slider and the wrapper element.
+ * @returns {SliderWithLabel}
  */
 function createSliderWithLabel(start, end, current, label, step = 1) {
    const slider = createSlider(start, end, current, step);
@@ -42,9 +59,10 @@ function createSliderWithLabel(start, end, current, label, step = 1) {
 
 /**
  * Creates a user button with the given name and event handler.
+ *
  * @param {string} name - The name of the button
  * @param {function} handler - The event handler for the button
- * @return {object} The created button
+ * @return {p5.Element} The created button
  */
 function createUserButton(name, handler) {
    const button = createButton(name);
@@ -53,6 +71,17 @@ function createUserButton(name, handler) {
    return button;
 }
 
+/**
+ * @typedef Widget
+ *
+ * @property {string} name - The name of the widget
+ * @property {string} prop - The getter property of the widget
+ * @property {function} create - The function to create the widget
+ * @param {p5.Element} root - The root element of the widget
+ * @param {any} [value] - The initial value of the widget
+ */
+
+/** @type {Widget[]} */
 const WIDGETS = [
    {
       name: 'level_select',
@@ -178,15 +207,55 @@ const WIDGETS = [
    }
 ];
 
+/**
+ * @typedef Hook
+ *
+ * @property {string} name - The name of the hook
+ * @property {string} type - The type of the hook
+ * @property {function} getter - The getter function of the hook
+ * @property {function} setter - The setter function of the hook
+ */
+
+/**
+ * @typedef Position
+ *
+ * @property {number} x - The x position
+ * @property {number} y - The y position
+ */
+
+/* The GUI class represents a user interface for controlling various options and settings. */
 export class GUI {
+   /**
+    * Creates a new instance of the GUI class.
+    */
    constructor() {
+      /**
+       * @type {p5.Element} The root element of the GUI.
+       * @private
+       */
       this._root = null;
+      /**
+       * @type {Widget[]} The array of widgets in the GUI.
+       * @private
+       */
       this._widgets = [];
+      /**
+       * @type {number} The gap between widgets in the GUI.
+       * @private
+       */
       this._widget_gap = 12;
 
+      /**
+       * @type {Hook[]} The array of hooks in the GUI.
+       * @private
+       */
       this._hooks = [];
 
       try {
+         /**
+          * @type {Object} The user data stored in the local storage.
+          * @private
+          */
          this._user_data = JSON.parse(localStorage.getItem('UserUIData'));
       } catch {
          this._user_data = {
@@ -194,6 +263,10 @@ export class GUI {
          };
       }
 
+      /**
+       * @type {Position} The position of the GUI.
+       * @private
+       */
       this._position = this._user_data?.position || { x: 10, y: 10 };
 
       this.create(WIDGETS);
@@ -201,6 +274,7 @@ export class GUI {
 
    /**
     * Creates the root of the Debug Menu and adds it to the P5.js canvas.
+    *
     * @private
     */
    _create_root() {
@@ -219,6 +293,7 @@ export class GUI {
 
    /**
     * Serializes the widget data and stores it in the local storage.
+    *
     * @private
     */
    _serialize() {
@@ -240,7 +315,8 @@ export class GUI {
 
    /**
     * Creates the widgets and adds them to the GUI.
-    * @param {Array} widgets - An array of widget objects.
+    *
+    * @param {Widget[]} widgets - An array of Widget.
     */
    create(widgets) {
       cursor();
@@ -284,6 +360,7 @@ export class GUI {
 
    /**
     * Retrieves the value of the widget with the specified name.
+    *
     * @param {string} name - The name of the widget whose value to retrieve.
     * @returns {boolean|number} The value of the widget.
     */
@@ -298,13 +375,14 @@ export class GUI {
 
    /**
     * Hooks an option or a custom function to be able to get and set its value.
+    *
     * @param {Object} options - The options object.
     * @param {string} options.type - The type of the hook: 'option' or 'custom'.
     * @param {string} options.name - The name of the option or custom hook.
     * @param {Object} [options.object] - The object to get and set the option from. Required if type is 'option'.
     * @param {string | Function} [options.getter] - The getter function name to get the option value or the custom getter function.
     * @param {string | Function} [options.setter] - The setter function name to set the option value or the custom setter function.
-    * @param {Function} [options.handler] - The handler function to be called. Required if type is 'button'.
+    * @param {function} [options.handler] - The handler function to be called. Required if type is 'button'.
     */
    hook({ type = 'option', name, object, getter = 'get', setter = 'set', handler = null }) {
       if (type === 'option') {

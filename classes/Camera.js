@@ -31,6 +31,7 @@ const CEILING_TEXTURE = 3;
  * @property {boolean} show_sprites - Enable sprite rendering.
  */
 
+/* The RayCamera class represents a class for the raycasting camera. */
 export class RayCamera {
    /**
     * Constructs a new RayCamera object.
