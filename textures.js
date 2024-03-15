@@ -1,4 +1,31 @@
-import { TEX_WIDTH, TEX_HEIGHT, WHITE } from 'const';
+const TEX_WIDTH = 128;
+const TEX_HEIGHT = 128;
+
+const SHADING_TYPE = {
+   NONE: 0,
+   SIDE: 1,
+   DISTANCE: 2
+};
+
+const BLACK = [0, 0, 0];
+const WHITE = [255, 255, 255];
+const FLOOR_COLOR = [200, 200, 200];
+const CEILING_COLOR = [100, 100, 100];
+
+const TEX_PATHS = [
+   'textures/redbrick.png',
+   'textures/eagle.png',
+   'textures/mossy.png',
+   'textures/wood.png',
+   'textures/colorstone.png',
+   'textures/pillar.png',
+   'textures/barrel.png',
+   'textures/greenlight.png',
+   'textures/greystone.png'
+];
+
+const TEX_IMAGES = [];
+const TEXTURES_LIST = [];
 
 const TEX_RED_CROSS = (tex, x, y, tex_w, tex_h, raw_pixels) => {
    const clr = [x != y && x != tex_w - y ? 255 : 0, 0, 0];
@@ -21,6 +48,8 @@ const TEX_YELLOW_GRAD = (tex, x, y, tex_w, tex_h, raw_pixels) => {
    tex.set(x, y, color(...clr));
    raw_pixels[tex_h * y + x] = clr;
 };
+
+const TEX_GENS = [TEX_RED_CROSS, TEX_XOR_GREEN, TEX_YELLOW_GRAD];
 
 function gen_tex(tex_w, tex_h, tex_func) {
    const raw_pixels = [];
@@ -100,21 +129,6 @@ async function preload_textures() {
    );
 }
 
-const TEX_PATHS = [
-   'textures/redbrick.png',
-   'textures/eagle.png',
-   'textures/mossy.png',
-   'textures/wood.png',
-   'textures/colorstone.png',
-   'textures/pillar.png',
-   'textures/barrel.png',
-   'textures/greenlight.png',
-   'textures/greystone.png',
-];
-const TEX_GENS = [TEX_RED_CROSS, TEX_XOR_GREEN, TEX_YELLOW_GRAD];
-const TEX_IMAGES = [];
-const TEXTURES_LIST = [];
-
 /**
  * Calculates the index of a pixel in an image given its x, y coordinates and channel number.
  * @param {number} x - The x coordinate of the pixel.
@@ -153,7 +167,28 @@ function set_image_pixel(x, y, color, image_data, image_width) {
 }
 
 function average_colors(color_a, color_b) {
-   return [~~((color_a[0] + color_b[0]) / 2), ~~((color_a[1] + color_b[1]) / 2), ~~((color_a[2] + color_b[2]) / 2), 255];
+   return [
+      ~~((color_a[0] + color_b[0]) / 2),
+      ~~((color_a[1] + color_b[1]) / 2),
+      ~~((color_a[2] + color_b[2]) / 2),
+      255
+   ];
 }
 
-export { TEX_PATHS, TEX_IMAGES, TEXTURES_LIST, preload_textures, get_pixel_index, get_image_pixel, set_image_pixel, average_colors };
+export {
+   SHADING_TYPE,
+   BLACK,
+   WHITE,
+   FLOOR_COLOR,
+   CEILING_COLOR,
+   TEX_WIDTH,
+   TEX_HEIGHT,
+   TEX_PATHS,
+   TEX_IMAGES,
+   TEXTURES_LIST,
+   preload_textures,
+   get_pixel_index,
+   get_image_pixel,
+   set_image_pixel,
+   average_colors
+};

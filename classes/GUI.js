@@ -1,5 +1,6 @@
-import { SHADING_TYPE, FOV, TARGET_FPS, RESOLUTION } from 'const';
+import { FOV, TARGET_FPS, RESOLUTION } from 'const';
 import { LEVEL_LIST } from 'levels';
+import { SHADING_TYPE } from 'textures';
 
 /**
  * Adds a label to an element.

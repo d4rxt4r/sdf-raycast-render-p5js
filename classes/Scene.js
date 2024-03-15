@@ -1,5 +1,5 @@
 import { gen_obj } from 'objects';
-import { TEX_WIDTH, TEX_HEIGHT } from 'const';
+import { TEX_WIDTH, TEX_HEIGHT } from 'textures';
 
 export class SDFScene {
    constructor(options) {

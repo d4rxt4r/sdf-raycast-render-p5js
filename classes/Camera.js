@@ -1,6 +1,15 @@
-import { SHADING_TYPE, BLACK, PLAYER_SPEED, ROTATE_SPEED, FLOOR_COLOR, CEILING_COLOR, WHITE } from 'defaults';
+import { PLAYER_SPEED, ROTATE_SPEED } from 'const';
 import { deg_to_rad, sin, tan, int, abs, map_range } from 'math_utils';
-import { get_image_pixel, set_image_pixel, average_colors } from 'textures';
+import {
+   WHITE,
+   BLACK,
+   SHADING_TYPE,
+   FLOOR_COLOR,
+   CEILING_COLOR,
+   get_image_pixel,
+   set_image_pixel,
+   average_colors
+} from 'textures';
 
 const FLOOR_TEXTURE = 2;
 const FLOOR_TEXTURE2 = 8;
@@ -36,7 +45,6 @@ export class RayCamera {
          h: int(this._scene.h * (this._options.resolution / 100))
       };
       this._plane_y = tan(deg_to_rad(this._options.fov) / 2);
-      this._height_amp = 100;
 
       this._view_buffer = createImage(this._viewport.w, this._viewport.h);
       this._view_buffer.loadPixels();
@@ -169,7 +177,7 @@ export class RayCamera {
       return { start_dir_x, start_dir_y, end_dir_x, end_dir_y };
    }
 
-   _render_floor(ray_collisions, view_buffer) {
+   _render_floor(view_buffer) {
       let x_pos, y_pos;
       let cell_x, cell_y;
       let tex_x, tex_y;
@@ -229,7 +237,7 @@ export class RayCamera {
                set_image_pixel(x, ceiling_y, ceiling_color, view_buffer.pixels, this._viewport.w);
             }
          } else {
-            for (let x = 0; x < ray_collisions.length; x++) {
+            for (let x = 0; x < this._viewport.w; x++) {
                // const ceiling_color =
                set_image_pixel(x, y, FLOOR_COLOR, view_buffer.pixels, this._viewport.w);
                set_image_pixel(x, ceiling_y, CEILING_COLOR, view_buffer.pixels, this._viewport.w);
@@ -239,23 +247,23 @@ export class RayCamera {
    }
 
    _render_walls(ray_collisions, view_buffer, z_buffer) {
-      const collisions_count = ray_collisions.length;
+      const collisions_count = this._viewport.w;
 
       for (let scanLine = 0; scanLine < collisions_count; scanLine++) {
          const line_data = ray_collisions[scanLine];
          const distance = this._options.fisheye_correction ? line_data.perp_distance : line_data.distance;
 
-         const line_height = int(this._viewport.h / (distance / this._height_amp));
+         const world_line_height = (this._scene.h / distance) * 130;
+         const line_height = int(map(world_line_height, 0, this._scene.h, 0, this._viewport.h));
 
          let draw_start = int(-line_height / 2 + this._viewport.h / 2);
-         if (draw_start < 0) draw_start = 0;
+         draw_start = draw_start < 0 ? 0 : draw_start;
          let draw_end = draw_start + line_height;
-         if (draw_end >= this._viewport.h) draw_end = this._viewport.h - 1;
+         draw_end = draw_end >= this._viewport.h ? this._viewport.h - 1 : draw_end;
 
          if (this._options.show_textures) {
-            if (!(line_data.texture_id !== undefined && line_data.texture_id !== null)) {
-               console.error('MISSING TEXTURE');
-               return;
+            if (line_data.texture_id === undefined || line_data.texture_id === null) {
+               continue;
             }
 
             const texture = this._scene.textures[line_data.texture_id];
@@ -374,7 +382,7 @@ export class RayCamera {
    render(ray_collisions) {
       this._view_buffer.pixels.fill(0);
       // actually renders ceiling too
-      this._render_floor(ray_collisions, this._view_buffer);
+      this._render_floor(this._view_buffer);
       this._render_walls(ray_collisions, this._view_buffer, this._z_buffer);
       if (this._options.show_sprites) {
          this._render_sprites(ray_collisions, this._view_buffer, this._z_buffer);
@@ -426,7 +434,7 @@ export class RayCamera {
 
                if (min_wall_distance > this._scene.w || min_wall_distance > this._scene.h) {
                   wall_collision_data = {
-                     distance: 400,
+                     distance: this._scene.w,
                      color: BLACK,
                      half_color: BLACK
                   };
