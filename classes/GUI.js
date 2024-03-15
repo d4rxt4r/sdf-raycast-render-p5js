@@ -1,4 +1,4 @@
-import { SHADING_TYPE, FOV, TARGET_FPS, RESOLUTION } from 'defaults';
+import { SHADING_TYPE, FOV, TARGET_FPS, RESOLUTION } from 'const';
 import { LEVEL_LIST } from 'levels';
 
 /**

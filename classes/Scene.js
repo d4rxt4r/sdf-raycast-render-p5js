@@ -1,6 +1,5 @@
 import { gen_obj } from 'objects';
-import { round } from 'math_utils';
-import { TEX_WIDTH, TEX_HEIGHT, WHITE } from 'defaults';
+import { TEX_WIDTH, TEX_HEIGHT } from 'const';
 
 export class SDFScene {
    constructor(options) {

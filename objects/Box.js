@@ -28,7 +28,7 @@ class SDFBox extends BaseObject {
             0,
             is_side_hit ? this._h : this._w,
             0,
-            this._texture.w,
+            this._texture.w - 1,
             true
          );
       }

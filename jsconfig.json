@@ -1,0 +1,30 @@
+{
+   "compilerOptions": {
+      "baseUrl": "./",
+      "module": "CommonJS",
+      "target": "ES6",
+      "paths": {
+         "const": [
+            "const.js"
+         ],
+         "math_utils": [
+            "./math_utils.js"
+         ],
+         "objects": [
+            "./objects.js"
+         ],
+         "objects/*": [
+            "./objects/*.js"
+         ],
+         "textures": [
+            "./textures.js"
+         ],
+         "levels": [
+            "./levels.js"
+         ],
+         "classes": [
+            "./classes.js"
+         ]
+      }
+   }
+}

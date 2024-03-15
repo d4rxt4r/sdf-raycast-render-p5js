@@ -1,4 +1,4 @@
-import { TEX_WIDTH, TEX_HEIGHT, WHITE } from 'defaults';
+import { TEX_WIDTH, TEX_HEIGHT, WHITE } from 'const';
 
 const TEX_RED_CROSS = (tex, x, y, tex_w, tex_h, raw_pixels) => {
    const clr = [x != y && x != tex_w - y ? 255 : 0, 0, 0];

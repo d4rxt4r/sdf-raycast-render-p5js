@@ -2,7 +2,7 @@ import SDFBox from './objects/Box.js';
 import SDFCircle from './objects/Circle.js';
 import SDFTriangle from './objects/Triangle.js';
 
-import { WHITE } from 'defaults';
+import { WHITE } from 'const';
 
 function gen_obj(type, col, row, tileWidth, tileHeight) {
    if (!type) {

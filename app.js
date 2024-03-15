@@ -1,4 +1,4 @@
-import { FRAME_RATE, USE_WEBGL, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'defaults';
+import { FRAME_RATE, USE_WEBGL, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'const';
 import { TEXTURES_LIST, preload_textures } from 'textures';
 import { GUI, SDFScene, RayCamera } from 'classes';
 import { LEVEL_LIST } from 'levels';
@@ -51,8 +51,8 @@ function setup() {
       getter: () => Scene.id,
       setter: (value) => {
          Scene.change_level({
-            screen_width: WIDTH,
-            screen_height: HEIGHT,
+            width: WIDTH,
+            height: HEIGHT,
             level_data: LEVEL_LIST[value],
             id: value
          });
