@@ -1,7 +1,6 @@
 FIXME:
 
 [ ] fix wall height and remove setting
-[ ] wall and ceiling speed is different relative to walls
 
 [ ] is_side_hit is wrong than looking straight up/down/left/right
 [ ] side textures are drown black from certain perspectives (x-axis)
@@ -30,11 +29,12 @@ TODO:
 -  add minimap
 -  add side shading to all objects
 -  add texture to all objects
+-  make entities a class to give them modify attrs
+-  add transparent textures
 -  implement distance-based texture shading
 -  add collisions
 -  implement DDA to compare to SDF
 -  add walls, floors and ceilings variable heights
 -  connect nearest boxes to one object
--  make entities a class to give them modify attrs
 -  add more complex shapes
 -  resize window events

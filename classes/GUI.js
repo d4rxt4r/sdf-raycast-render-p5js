@@ -177,7 +177,7 @@ const WIDGETS = [
    }
 ];
 
-class GUI {
+export class GUI {
    constructor() {
       this._root = null;
       this._widgets = [];
@@ -386,5 +386,3 @@ class GUI {
       }
    }
 }
-
-export { GUI };

@@ -1,23 +1,24 @@
 import { gen_obj } from 'objects';
 import { round } from 'math_utils';
+import { TEX_WIDTH, TEX_HEIGHT, WHITE } from 'defaults';
 
-class SDFScene {
+export class SDFScene {
    constructor(options) {
       this.init(options);
    }
 
-   init({ screen_width, screen_height, level_data, id }) {
+   init({ width, height, level_data, id }) {
       this._id = id;
 
       const { data: raw_data = [], entities = [] } = level_data;
       this._raw_data = [...raw_data];
       this._entities = [...entities];
 
-      this._width = this._raw_data[0].length;
-      this._height = this._raw_data.length;
+      this._width = width;
+      this._height = height;
 
-      this.tile_width = screen_width / this._width;
-      this.tile_height = screen_height / this._height;
+      this.tile_width = TEX_WIDTH;
+      this.tile_height = TEX_HEIGHT;
 
       this._objects = [];
       this._spawn_objects();
@@ -30,8 +31,8 @@ class SDFScene {
 
    _spawn_objects() {
       this._objects = [];
-      for (let row = 0; row < this._height; row++) {
-         for (let col = 0; col < this._width; col++) {
+      for (let row = 0; row < this._raw_data.length; row++) {
+         for (let col = 0; col < this._raw_data[row].length; col++) {
             const type = this._raw_data[row][col];
             if (type) {
                this._objects.push(gen_obj(type, col, row, this.tile_width, this.tile_height));
@@ -61,7 +62,7 @@ class SDFScene {
    }
 
    get_center_vec() {
-      return createVector(round((this._width * this.tile_width) / 2), round((this._height * this.tile_height) / 2));
+      return createVector(this._width / 2, this._height / 2);
    }
 
    render() {
@@ -77,5 +78,3 @@ class SDFScene {
       pop();
    }
 }
-
-export { SDFScene };

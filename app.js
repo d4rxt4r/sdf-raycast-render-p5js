@@ -10,8 +10,8 @@ await preload_textures();
 const UserUI = new GUI();
 
 const Scene = new SDFScene({
-   screen_width: WIDTH,
-   screen_height: HEIGHT,
+   width: WIDTH,
+   height: HEIGHT,
    level_data: LEVEL_LIST[UserUI.get('level_select')],
    id: UserUI.get('level_select')
 });

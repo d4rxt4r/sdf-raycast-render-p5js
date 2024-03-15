@@ -6,7 +6,7 @@ const FLOOR_TEXTURE = 2;
 const FLOOR_TEXTURE2 = 8;
 const CEILING_TEXTURE = 3;
 
-class RayCamera {
+export class RayCamera {
    constructor({ scene, viewport, options }) {
       this._scene = scene;
       this._viewport = viewport;
@@ -459,7 +459,7 @@ class RayCamera {
             const next_ray_step_x = ray_dir.x + this._pos_vec.x;
             const next_ray_step_y = ray_dir.y + this._pos_vec.y;
 
-            if (this._options.debug_rays || ray === 0 || ray === this._viewport.w - 1) {
+            if (this._options.debug_rays) {
                push();
 
                stroke(0, 255, 0, 0.4);
@@ -494,5 +494,3 @@ class RayCamera {
       // this.display_camera();
    }
 }
-
-export { RayCamera };
