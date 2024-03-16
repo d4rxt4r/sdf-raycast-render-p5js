@@ -42,8 +42,8 @@ function setup() {
       getter: () => Scene.id,
       setter: (value) => {
          Scene.change_level({
-            width: WIDTH,
-            height: HEIGHT,
+            width: windowWidth,
+            height: windowHeight,
             level_data: LEVEL_LIST[value],
             id: value
          });
@@ -113,7 +113,7 @@ function draw() {
       noStroke();
       textFont(fonts.inconsolata, 16);
       textStyle(BOLD);
-      text(`FPS: ${round(frameRate())}`, WIDTH - 100, 20);
+      text(`FPS: ${round(frameRate())}`, windowWidth - 100, 20);
    }
 }
 
@@ -123,6 +123,14 @@ function keyPressed() {
    }
 }
 
+function windowResized() {
+   resizeCanvas(windowWidth, windowHeight);
+   Scene.width = windowWidth;
+   Scene.height = windowHeight;
+   Camera.calc_viewport();
+}
+
 setup();
 window.draw = draw;
 window.keyPressed = keyPressed;
+window.windowResized = windowResized;

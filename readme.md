@@ -1,5 +1,6 @@
-FIXME:
-
+Known Bugs a.k.a
+FIXME
+[ ] sdf is broken wtf
 [ ] is_side_hit is wrong than looking straight up/down/left/right
 [ ] side textures are drown black from certain perspectives (x-axis)
 [ ] triangles 31, 32 stopped working somehow
@@ -8,7 +9,6 @@ FIXME:
 [ ] sprites are not drawn ar x-res > 50% wtf lol
 
 Possible performance improvements:
-
 [x] use p5.Graphics instead of p5.Image
 [x] use WebGL Framebuffers to draw graphics 
 [x] use native JS call for Maths functions
@@ -24,17 +24,16 @@ Possible performance improvements:
 [ ] try vertical floor casting
 [ ] try Fast Inverse Sqrt instead of sqrt() for dist functions
 
-TODO:
-
--  add minimap
--  add side shading to all objects
--  add texture to all objects
--  make entities a class to give them modify attrs
--  add transparent textures
--  implement distance-based texture shading
--  add collisions
--  implement DDA to compare to SDF
--  add walls, floors and ceilings variable heights
--  connect nearest boxes to one object
--  add more complex shapes
--  resize window events
+TODO List:
+[ ] add minimap
+[ ] add side shading to all objects
+[ ] add texture to all objects
+[ ] make entities a class to give them modify attrs
+[ ] add transparent textures
+[ ] implement distance-based texture shading
+[ ] add collisions
+[ ] implement DDA to compare to SDF
+[ ] add walls, floors and ceilings variable heights
+[ ] connect nearest boxes to one object
+[ ] add more complex shapes
+[x] resize window events
