@@ -1,5 +1,5 @@
 import { FRAME_RATE, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'const';
-import { preload_textures } from 'textures';
+import { BLACK, GREEN, preload_textures } from 'textures';
 import { GUI, SDFScene, RayCamera } from 'classes';
 import { LEVEL_LIST } from 'levels';
 import { round } from 'math_utils';
@@ -24,6 +24,8 @@ const Camera = new RayCamera({
    steps: MAX_STEPS,
    resolution: UserUI.get('resolution'),
    fov: UserUI.get('fov'),
+   mm_size: UserUI.get('mm_size'),
+   mm_scale: UserUI.get('mm_scale'),
    fisheye_correction: UserUI.get('fisheye_correction'),
    debug_rays: UserUI.get('debug_rays'),
    debug_sdf: UserUI.get('debug_sdf'),
@@ -90,6 +92,8 @@ function setup() {
    UserUI.hook({ type: 'option', name: 'show_sprites', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'debug_rays', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'debug_sdf', object: Camera, getter: 'get_option', setter: 'set_option' });
+   UserUI.hook({ type: 'option', name: 'mm_size', object: Camera, getter: 'get_option', setter: 'set_option' });
+   UserUI.hook({ type: 'option', name: 'mm_scale', object: Camera, getter: 'get_option', setter: 'set_option' });
 
    UserUI.hook({
       type: 'button',
@@ -109,8 +113,10 @@ function draw() {
    }
 
    if (UserUI.get('show_fps')) {
-      fill(100, 255, 0);
+      fill(BLACK);
       noStroke();
+      rect(windowWidth - 110, 5, 80, 20);
+      fill(GREEN);
       textFont(fonts.inconsolata, 16);
       textStyle(BOLD);
       text(`FPS: ${round(frameRate())}`, windowWidth - 100, 20);

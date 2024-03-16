@@ -9,7 +9,9 @@ const SHADING_TYPE = {
 
 const BLACK = [0, 0, 0];
 const WHITE = [255, 255, 255];
+const RED = [255, 0, 0];
 const GREEN = [0, 255, 0];
+const BLUE = [0, 0, 255];
 const FLOOR_COLOR = [200, 200, 200];
 const CEILING_COLOR = [100, 100, 100];
 
@@ -180,7 +182,9 @@ export {
    SHADING_TYPE,
    BLACK,
    WHITE,
+   RED,
    GREEN,
+   BLUE,
    FLOOR_COLOR,
    CEILING_COLOR,
    TEX_WIDTH,

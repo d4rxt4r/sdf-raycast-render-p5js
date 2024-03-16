@@ -1,4 +1,4 @@
-import { FOV, TARGET_FPS, RESOLUTION } from 'const';
+import { FOV, TARGET_FPS, RESOLUTION, MINIMAP_SIZE, MINIMAP_SCALE } from 'const';
 import { LEVEL_LIST } from 'levels';
 import { SHADING_TYPE } from 'textures';
 
@@ -127,6 +127,26 @@ const WIDGETS = [
       }
    },
    {
+      name: 'mm_size',
+      prop: 'value',
+      create(root, value = MINIMAP_SIZE) {
+         const { wrap, slider: widget, value_label } = createSliderWithLabel(150, 600, value, 'minimap size');
+         wrap.parent(root);
+
+         return { widget, value_label };
+      }
+   },
+   {
+      name: 'mm_scale',
+      prop: 'value',
+      create(root, value = MINIMAP_SCALE) {
+         const { wrap, slider: widget, value_label } = createSliderWithLabel(0.1, 1, value, 'minimap scale', 0.1);
+         wrap.parent(root);
+
+         return { widget, value_label };
+      }
+   },
+   {
       name: 'shading_type',
       prop: 'value',
       create(root, value = SHADING_TYPE.NONE) {
@@ -148,7 +168,7 @@ const WIDGETS = [
    {
       name: 'fisheye_correction',
       prop: 'checked',
-      create(root, value = false) {
+      create(root, value = true) {
          const widget = createCheckbox('fisheye correction', value);
          widget.parent(root);
 

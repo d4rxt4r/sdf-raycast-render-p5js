@@ -3,7 +3,9 @@ import { deg_to_rad, sin, tan, int, abs, map_range } from 'math_utils';
 import {
    WHITE,
    BLACK,
+   RED,
    GREEN,
+   // BLUE,
    SHADING_TYPE,
    FLOOR_COLOR,
    CEILING_COLOR,
@@ -16,9 +18,7 @@ const FLOOR_TEXTURE = 2;
 const FLOOR_TEXTURE2 = 8;
 const CEILING_TEXTURE = 3;
 
-const MINIMAP_SIZE = 30;
-const MINIMAP_SIZE_WIDTH = MINIMAP_SIZE * 10;
-const SIZE_FACTOR = MINIMAP_SIZE / 100;
+const MINIMAP_SIZE_WIDTH = 300;
 const CAMERA_PLANE_DISTANCE = 50;
 
 /**
@@ -35,6 +35,8 @@ const CAMERA_PLANE_DISTANCE = 50;
  * @property {string} shading_type - The shading type of the objects.
  * @property {boolean} show_textures - Enable texture mapping.
  * @property {boolean} show_sprites - Enable sprite rendering.
+ * @property {number} mm_size - The size of the minimap.
+ * @property {number} mm_scale - The scale of the minimap.
  */
 
 /* The RayCamera class represents a class for the raycasting camera. */
@@ -466,16 +468,38 @@ export class RayCamera {
    }
 
    /**
-    * Displays the camera on the canvas.
+    * Renders the camera on the canvas.
     *
     * @private
     */
-   _display_camera(x_pos, y_pos, size_factor) {
+   _render_camera(x_pos, y_pos, size_factor, ray_collisions) {
       const dir_vec = this._dir_vec.copy();
-      dir_vec.setMag(CAMERA_PLANE_DISTANCE);
       const plane_vec = this._plane_vec.copy();
-      plane_vec.mult(CAMERA_PLANE_DISTANCE);
       const plane_center_vec = this._plane_center_vec.copy();
+      plane_center_vec.add(dir_vec);
+
+      if (this._options.debug_rays) {
+         stroke(...RED, 255 / 4);
+         fill(...RED, 255);
+
+         const ray_dir = createVector(x_pos, y_pos);
+         const draw_index = int(this._options.scene.width / this._viewport.width);
+
+         for (let ray = 0; ray < this._viewport.width; ray++) {
+            if (ray % draw_index !== 0) continue;
+            const camera_x = (2 * ray) / this._viewport.width - 1;
+            ray_dir.x = this._dir_vec.x + this._plane_vec.x * camera_x;
+            ray_dir.y = this._dir_vec.y + this._plane_vec.y * camera_x;
+            ray_dir.setMag(ray_collisions[ray].distance * size_factor);
+            ray_dir.x += x_pos;
+            ray_dir.y += y_pos;
+
+            line(x_pos, y_pos, ray_dir.x, ray_dir.y);
+         }
+      }
+
+      dir_vec.setMag(CAMERA_PLANE_DISTANCE);
+      plane_vec.mult(CAMERA_PLANE_DISTANCE);
       plane_center_vec.add(dir_vec);
 
       const camera_plane_start_x = (plane_center_vec.x - plane_vec.x) * size_factor;
@@ -489,6 +513,7 @@ export class RayCamera {
       triangle(x_pos, y_pos, camera_plane_start_x, camera_plane_start_y, camera_plane_end_x, camera_plane_end_y);
       fill(WHITE);
       stroke(WHITE);
+
       circle(x_pos, y_pos, 10);
    }
 
@@ -497,7 +522,7 @@ export class RayCamera {
     *
     * @param {number} sizeFactor - the scale factor to resize the scene for the minimap.
     */
-   _render_minimap(size_factor) {
+   _render_minimap(size_factor, ray_collisions) {
       if (!this._minimap_buffer) {
          this._minimap_buffer = createFramebuffer({
             depth: false
@@ -509,24 +534,26 @@ export class RayCamera {
 
       this._minimap_buffer.draw(() => {
          background(BLACK);
-         this._display_camera(camera_pos_x, camera_pos_y, size_factor);
+         this._render_camera(camera_pos_x, camera_pos_y, size_factor, ray_collisions);
          this._options.scene.render(size_factor);
       });
 
+      const mm_size = this._options.mm_size;
+
       noFill();
       stroke(GREEN);
-      rect(0, 0, MINIMAP_SIZE_WIDTH, MINIMAP_SIZE_WIDTH);
+      rect(0, 0, mm_size, mm_size);
 
       image(
          this._minimap_buffer,
          0,
          0,
-         MINIMAP_SIZE_WIDTH,
-         MINIMAP_SIZE_WIDTH,
-         camera_pos_x - MINIMAP_SIZE_WIDTH / 2 + this._options.scene.width / 2,
-         camera_pos_y - MINIMAP_SIZE_WIDTH / 2 + this._options.scene.height / 2,
-         MINIMAP_SIZE_WIDTH,
-         MINIMAP_SIZE_WIDTH
+         mm_size,
+         mm_size,
+         camera_pos_x - mm_size / 2 + this._options.scene.width / 2,
+         camera_pos_y - mm_size / 2 + this._options.scene.height / 2,
+         mm_size,
+         mm_size
       );
    }
 
@@ -535,7 +562,7 @@ export class RayCamera {
     *
     * @param {Array} ray_collisions - The ray collisions array.
     */
-   render(ray_collisions) {
+   _render(ray_collisions) {
       // this._view_buffer.pixels.fill(...WHITE);
 
       // actually renders ceiling too
@@ -550,7 +577,7 @@ export class RayCamera {
       translate(-this._options.scene.width / 2, -this._options.scene.height / 2);
       image(this._view_buffer, 0, 0, this._options.scene.width, this._options.scene.height);
 
-      this._render_minimap(SIZE_FACTOR);
+      this._render_minimap(this._options.mm_scale, ray_collisions);
    }
 
    /**
@@ -562,17 +589,19 @@ export class RayCamera {
       this._calc_projection_plane();
 
       const ray_collisions = [];
-      const ray_step_vec = createVector();
+      const ray_step_vec = {
+         x: 0,
+         y: 0
+      };
+      const ray_dir = createVector();
 
       let total_ray_distance;
       let wall_collision_data = {};
 
       for (let ray = 0; ray < this._viewport.width; ray++) {
          const camera_x = (2 * ray) / this._viewport.width - 1;
-         const ray_dir = createVector(
-            this._dir_vec.x + this._plane_vec.x * camera_x,
-            this._dir_vec.y + this._plane_vec.y * camera_x
-         );
+         ray_dir.x = this._dir_vec.x + this._plane_vec.x * camera_x;
+         ray_dir.y = this._dir_vec.y + this._plane_vec.y * camera_x;
 
          ray_step_vec.x = this._pos_vec.x;
          ray_step_vec.y = this._pos_vec.y;
@@ -612,11 +641,11 @@ export class RayCamera {
 
                noFill();
                if (i > 0 || (!i && !ray)) {
-                  stroke(0, 255, 0, 0.4);
+                  stroke(...GREEN, 0.4);
                   circle(ray_step_vec.x, ray_step_vec.y, wall_collision_data.distance * 2);
                }
                if ((ray === 0 || ray === this._viewport.width - 1) && i) {
-                  stroke(0, 255, 0, 1);
+                  stroke(...GREEN, 1);
                   text(`${i}`, ray_step_vec.x, ray_step_vec.y);
                }
 
@@ -628,15 +657,6 @@ export class RayCamera {
 
             const next_ray_step_x = ray_dir.x + this._pos_vec.x;
             const next_ray_step_y = ray_dir.y + this._pos_vec.y;
-
-            if (this._options.debug_rays) {
-               push();
-
-               stroke(0, 255, 0, 0.4);
-               line(ray_step_vec.x, ray_step_vec.y, next_ray_step_x, next_ray_step_y);
-
-               pop();
-            }
 
             ray_step_vec.x = next_ray_step_x;
             ray_step_vec.y = next_ray_step_y;
@@ -660,7 +680,7 @@ export class RayCamera {
          });
       }
 
-      this.render(ray_collisions);
+      this._render(ray_collisions);
       // this.display_camera();
    }
 }

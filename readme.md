@@ -1,6 +1,7 @@
 Known Bugs a.k.a
 FIXME
 [ ] sdf is broken wtf
+[ ] lerpColor stopped worked 
 [ ] is_side_hit is wrong than looking straight up/down/left/right
 [ ] side textures are drown black from certain perspectives (x-axis)
 [ ] triangles 31, 32 stopped working somehow
@@ -25,7 +26,7 @@ Possible performance improvements:
 [ ] try Fast Inverse Sqrt instead of sqrt() for dist functions
 
 TODO List:
-[ ] add minimap
+[x] add minimap
 [ ] add side shading to all objects
 [ ] add texture to all objects
 [ ] make entities a class to give them modify attrs
