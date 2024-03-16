@@ -169,13 +169,38 @@ function set_image_pixel(x, y, color, image_data, image_width) {
    image_data[r_index + 3] = a;
 }
 
+/**
+ * Interpolates between two colors using a linear interpolation.
+ *
+ * @param {number[]} color_a - An array of four numbers representing the red, green, blue, and alpha values of the first color.
+ * @param {number[]} color_b - An array of four numbers representing the red, green, blue, and alpha values of the second color.
+ * @returns {number[]} An array of four numbers representing the interpolated red, green, blue, and alpha values.
+ */
 function average_colors(color_a, color_b) {
-   return [
+   const result = [
       ~~((color_a[0] + color_b[0]) / 2),
       ~~((color_a[1] + color_b[1]) / 2),
       ~~((color_a[2] + color_b[2]) / 2),
       255
    ];
+
+   return result;
+}
+
+/**
+ * Interpolates between two colors using a linear interpolation.
+ *
+ * @param {number[]} color1 - An array of four numbers representing the red, green, blue, and alpha values of the first color.
+ * @param {number[]} color2 - An array of four numbers representing the red, green, blue, and alpha values of the second color.
+ * @param {number} t - A number between 0 and 1 representing the interpolation factor.
+ * @returns {number[]} An array of four numbers representing the interpolated red, green, blue, and alpha values of the colors.
+ */
+function lerp_colors(color1, color2, t) {
+   const color = [0, 0, 0, 255];
+   color[0] = color1[0] + (color2[0] - color1[0]) * t;
+   color[1] = color1[1] + (color2[1] - color1[1]) * t;
+   color[2] = color1[2] + (color2[2] - color1[2]) * t;
+   return color;
 }
 
 export {
@@ -196,5 +221,6 @@ export {
    get_pixel_index,
    get_image_pixel,
    set_image_pixel,
-   average_colors
+   average_colors,
+   lerp_colors
 };

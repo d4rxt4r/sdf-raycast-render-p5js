@@ -10,7 +10,8 @@ import {
    FLOOR_COLOR,
    CEILING_COLOR,
    // get_image_pixel,
-   set_image_pixel
+   set_image_pixel,
+   lerp_colors
 } from 'textures';
 import { SDFScene } from 'classes';
 
@@ -325,6 +326,10 @@ export class RayCamera {
          const line_data = ray_collisions[scanLine];
          const distance = this._options.fisheye_correction ? line_data.perp_distance : line_data.distance;
 
+         if (!isFinite(distance)) {
+            continue;
+         }
+
          const world_line_height = (this._options.scene.height / distance) * this._options.scene.tile_height;
          const line_height = int(map_range(world_line_height, 0, this._options.scene.height, 0, this._viewport.height));
 
@@ -365,7 +370,11 @@ export class RayCamera {
          } else {
             let wall_color = line_data.color;
             if (this._options.shading_type === SHADING_TYPE.DISTANCE) {
-               wall_color = lerpColor(line_data.color, BLACK, line_data.distance / this._viewport.height);
+               wall_color = lerp_colors(
+                  line_data.color,
+                  BLACK,
+                  line_data.distance / this._options.scene.width
+               );
             }
             if (this._options.shading_type === SHADING_TYPE.SIDE && line_data.is_side_hit) {
                wall_color = line_data.half_color;
@@ -618,7 +627,7 @@ export class RayCamera {
 
                if (collision.distance < min_wall_distance) {
                   min_wall_distance = collision.distance;
-                  wall_collision_data  = collision;
+                  wall_collision_data = collision;
                }
 
                if (min_wall_distance <= this._options.accuracy) {
