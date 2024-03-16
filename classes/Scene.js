@@ -61,6 +61,11 @@ export class SDFScene {
        */
       this.textures = options.textures;
       /**
+       * The fonts for the level.
+       * @type {Object}
+       */
+      this.fonts = options.fonts;
+      /**
        * The raw data for the level.
        * @type {Array.<Object>}
        * @private

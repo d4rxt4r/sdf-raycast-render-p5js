@@ -17,9 +17,7 @@ import { SDFScene } from 'classes';
 const FLOOR_TEXTURE = 2;
 const FLOOR_TEXTURE2 = 8;
 const CEILING_TEXTURE = 3;
-
-const MINIMAP_SIZE_WIDTH = 300;
-const CAMERA_PLANE_DISTANCE = 50;
+const CAMERA_PLANE_DISTANCE = 100;
 
 /**
  * @typedef {Object} RayCameraOptions
@@ -384,7 +382,7 @@ export class RayCamera {
             }
          }
 
-         z_buffer[collisions_count - scanLine] = line_data.perp_distance;
+         z_buffer[collisions_count - scanLine - 1] = line_data.perp_distance;
       }
    }
 
@@ -486,7 +484,6 @@ export class RayCamera {
          const draw_index = int(this._options.scene.width / this._viewport.width);
 
          for (let ray = 0; ray < this._viewport.width; ray++) {
-            if (ray % draw_index !== 0) continue;
             const camera_x = (2 * ray) / this._viewport.width - 1;
             ray_dir.x = this._dir_vec.x + this._plane_vec.x * camera_x;
             ray_dir.y = this._dir_vec.y + this._plane_vec.y * camera_x;
@@ -533,7 +530,6 @@ export class RayCamera {
       const camera_pos_y = this._pos_vec.y * size_factor;
 
       this._minimap_buffer.draw(() => {
-         background(BLACK);
          this._render_camera(camera_pos_x, camera_pos_y, size_factor, ray_collisions);
          this._options.scene.render(size_factor);
       });
@@ -586,6 +582,8 @@ export class RayCamera {
     * @param {BaseObject[]} scene_objects - The scene objects to check for collisions.
     */
    march(scene_objects) {
+      this._minimap_buffer && this._minimap_buffer.draw(() => background(BLACK));
+
       this._calc_projection_plane();
 
       const ray_collisions = [];
@@ -593,10 +591,14 @@ export class RayCamera {
          x: 0,
          y: 0
       };
-      const ray_dir = createVector();
+      const ray_dir = this._dir_vec.copy();
 
       let total_ray_distance;
-      let wall_collision_data = {};
+      let wall_collision_data = {
+         distance: Infinity,
+         color: BLACK,
+         half_color: BLACK
+      };
 
       for (let ray = 0; ray < this._viewport.width; ray++) {
          const camera_x = (2 * ray) / this._viewport.width - 1;
@@ -608,51 +610,38 @@ export class RayCamera {
 
          total_ray_distance = 0;
 
-         for (let i = 0; i <= this._options.steps; i++) {
+         for (let i = 0; i < this._options.steps; i++) {
             let min_wall_distance = Infinity;
 
             for (const object of scene_objects) {
-               const collision = object.collide(
-                  ray_step_vec.x,
-                  ray_step_vec.y,
-                  this._options.shading_type === SHADING_TYPE.SIDE
-               );
+               const collision = object.collide(ray_step_vec.x, ray_step_vec.y);
 
                if (collision.distance < min_wall_distance) {
                   min_wall_distance = collision.distance;
-                  wall_collision_data = collision;
-               }
-
-               if (min_wall_distance > this._options.scene.width || min_wall_distance > this._options.scene.h) {
-                  wall_collision_data = {
-                     distance: this._options.scene.width,
-                     color: BLACK,
-                     half_color: BLACK
-                  };
+                  wall_collision_data.distance = collision.distance;
                }
 
                if (min_wall_distance <= this._options.accuracy) {
+                  wall_collision_data = collision;
                   break;
                }
             }
 
-            if (this._options.debug_sdf) {
-               push();
-
-               noFill();
-               if (i > 0 || (!i && !ray)) {
-                  stroke(...GREEN, 0.4);
-                  circle(ray_step_vec.x, ray_step_vec.y, wall_collision_data.distance * 2);
-               }
-               if ((ray === 0 || ray === this._viewport.width - 1) && i) {
-                  stroke(...GREEN, 1);
-                  text(`${i}`, ray_step_vec.x, ray_step_vec.y);
-               }
-
-               pop();
+            if (this._options.debug_sdf && this._minimap_buffer) {
+               this._minimap_buffer.draw(() => {
+                  if (i > 0 || (!i && !ray)) {
+                     noFill();
+                     stroke(...GREEN, 255 / 4);
+                     circle(
+                        ray_step_vec.x * this._options.mm_scale,
+                        ray_step_vec.y * this._options.mm_scale,
+                        wall_collision_data.distance * 2
+                     );
+                  }
+               });
             }
 
-            total_ray_distance += wall_collision_data.distance;
+            total_ray_distance += wall_collision_data.distance ?? 0;
             ray_dir.setMag(total_ray_distance);
 
             const next_ray_step_x = ray_dir.x + this._pos_vec.x;
@@ -660,6 +649,11 @@ export class RayCamera {
 
             ray_step_vec.x = next_ray_step_x;
             ray_step_vec.y = next_ray_step_y;
+
+            if (total_ray_distance > this._options.scene.width || total_ray_distance > this._options.scene.height) {
+               wall_collision_data.distance = Infinity;
+               total_ray_distance = Infinity;
+            }
 
             if (
                wall_collision_data.distance <= this._options.accuracy ||
@@ -681,6 +675,5 @@ export class RayCamera {
       }
 
       this._render(ray_collisions);
-      // this.display_camera();
    }
 }
