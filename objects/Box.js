@@ -1,4 +1,5 @@
 import BaseObject from './Base.js';
+import { ACCURACY } from 'const';
 import { map_range, max, sqrt, abs } from 'math_utils';
 
 class SDFBox extends BaseObject {
@@ -21,7 +22,7 @@ class SDFBox extends BaseObject {
       let tex_x_pos;
       const d = sqrt(dx * dx + dy * dy);
 
-      if (d <= 0.01) {
+      if (d <= ACCURACY * 2) {
          tex_x_pos = map_range(
             is_side_hit ? abs(this.y - cy) : abs(this.x - cx),
             0,

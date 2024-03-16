@@ -1,6 +1,5 @@
 Known Bugs a.k.a
 FIXME
-[ ] sdf is broken wtf
 [ ] lerpColor stopped worked 
 [ ] is_side_hit is wrong than looking straight up/down/left/right
 [ ] side textures are drown black from certain perspectives (x-axis)

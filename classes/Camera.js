@@ -596,8 +596,8 @@ export class RayCamera {
       let total_ray_distance;
       let wall_collision_data = {
          distance: Infinity,
-         color: BLACK,
-         half_color: BLACK
+         color: GREEN,
+         half_color: RED
       };
 
       for (let ray = 0; ray < this._viewport.width; ray++) {
@@ -618,7 +618,7 @@ export class RayCamera {
 
                if (collision.distance < min_wall_distance) {
                   min_wall_distance = collision.distance;
-                  wall_collision_data.distance = collision.distance;
+                  wall_collision_data  = collision;
                }
 
                if (min_wall_distance <= this._options.accuracy) {
