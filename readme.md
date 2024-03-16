@@ -1,8 +1,6 @@
 Known Bugs a.k.a
 FIXME
 [ ] is_side_hit is wrong than looking straight up/down/left/right
-[ ] side textures are drown black from certain perspectives (x-axis)
-[ ] triangles 31, 32 stopped working somehow
 [ ] sprites size is discrete, use floats?
 [ ] sprites x = 0 are not drawn
 [ ] sprites are not drawn ar x-res > 50% wtf lol

@@ -29,11 +29,11 @@ function gen_obj(type, col, row, tileWidth, tileHeight, textures) {
    }
 
    if (type === 31) {
-      return new SDFTriangle(col * tileWidth + tileWidth, row * tileHeight, -tileWidth, tileHeight, WHITE, null, -1);
+      return new SDFTriangle(col * tileWidth + tileWidth, row * tileHeight, -tileWidth, tileHeight, WHITE, -1);
    }
 
    if (type === 32) {
-      return new SDFTriangle(col * tileWidth, row * tileHeight + tileHeight, tileWidth, -tileHeight, WHITE, null, -1);
+      return new SDFTriangle(col * tileWidth, row * tileHeight + tileHeight, tileWidth, -tileHeight, WHITE, -1);
    }
 
    if (type === 33) {

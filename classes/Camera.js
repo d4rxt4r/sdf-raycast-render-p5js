@@ -370,11 +370,7 @@ export class RayCamera {
          } else {
             let wall_color = line_data.color;
             if (this._options.shading_type === SHADING_TYPE.DISTANCE) {
-               wall_color = lerp_colors(
-                  line_data.color,
-                  BLACK,
-                  line_data.distance / this._options.scene.width
-               );
+               wall_color = lerp_colors(line_data.color, BLACK, line_data.distance / this._options.scene.width);
             }
             if (this._options.shading_type === SHADING_TYPE.SIDE && line_data.is_side_hit) {
                wall_color = line_data.half_color;
@@ -658,6 +654,12 @@ export class RayCamera {
 
             ray_step_vec.x = next_ray_step_x;
             ray_step_vec.y = next_ray_step_y;
+
+            this._options.debug_sdf &&
+               this._minimap_buffer &&
+               this._minimap_buffer.draw(() => {
+                  circle(ray_step_vec.x * this._options.mm_scale, ray_step_vec.y * this._options.mm_scale, 5);
+               });
 
             if (total_ray_distance > this._options.scene.width || total_ray_distance > this._options.scene.height) {
                wall_collision_data.distance = Infinity;

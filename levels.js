@@ -28,7 +28,7 @@ const TEST_LEVEL_02 = {
    ]
 };
 
-const TEST_LEVEL_1 = {
+const TEST_LEVEL_11 = {
    data: [
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
@@ -234,7 +234,7 @@ const TEST_LEVEL_19 = {
    ]
 };
 
-const LEVELS = [TEST_LEVEL_02, TEST_LEVEL_0, TEST_LEVEL_1, TEST_LEVEL_01, TEST_LEVEL_2, TEST_LEVEL_10, TEST_LEVEL_19];
+const LEVELS = [TEST_LEVEL_02, TEST_LEVEL_0, TEST_LEVEL_11, TEST_LEVEL_01, TEST_LEVEL_2, TEST_LEVEL_10, TEST_LEVEL_19];
 
 function createLevelSelect(x, y) {
    const levelSelect = createSelect();
