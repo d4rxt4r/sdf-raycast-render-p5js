@@ -327,7 +327,7 @@ export class GUI {
       for (let i = 0; i < widgets.length; i++) {
          const widget = widgets[i];
          const widget_name = widget.name;
-         const widget_value = this._user_data[widget_name];
+         const widget_value = this._user_data?.[widget_name];
 
          const { widget: _inst, value_label } = widgets[i].create(this._root, widget_value);
 
