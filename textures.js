@@ -9,6 +9,7 @@ const SHADING_TYPE = {
 
 const BLACK = [0, 0, 0];
 const WHITE = [255, 255, 255];
+const GREEN = [0, 255, 0];
 const FLOOR_COLOR = [200, 200, 200];
 const CEILING_COLOR = [100, 100, 100];
 
@@ -77,11 +78,9 @@ function gen_tex(tex_w, tex_h, tex_func) {
 
 function gen_tex_from_img(tex_w, tex_h, image_data) {
    const raw_pixels = [];
-   const tex = createGraphics(tex_w, tex_h);
+   const tex = createGraphics(tex_w, tex_h, WEBGL);
 
-   tex.fill(WHITE);
-   tex.circle(tex_w / 2, tex_h / 2, 10);
-
+   tex.translate(-tex_w / 2, -tex_h / 2);
    tex.image(image_data, 0, 0, tex_w, tex_h);
    tex.loadPixels();
 
@@ -181,6 +180,7 @@ export {
    SHADING_TYPE,
    BLACK,
    WHITE,
+   GREEN,
    FLOOR_COLOR,
    CEILING_COLOR,
    TEX_WIDTH,

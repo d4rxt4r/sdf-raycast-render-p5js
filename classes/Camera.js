@@ -3,6 +3,7 @@ import { deg_to_rad, sin, tan, int, abs, map_range } from 'math_utils';
 import {
    WHITE,
    BLACK,
+   GREEN,
    SHADING_TYPE,
    FLOOR_COLOR,
    CEILING_COLOR,
@@ -14,6 +15,11 @@ import { SDFScene } from 'classes';
 const FLOOR_TEXTURE = 2;
 const FLOOR_TEXTURE2 = 8;
 const CEILING_TEXTURE = 3;
+
+const MINIMAP_SIZE = 30;
+const MINIMAP_SIZE_WIDTH = MINIMAP_SIZE * 10;
+const SIZE_FACTOR = MINIMAP_SIZE / 100;
+const CAMERA_PLANE_DISTANCE = 50;
 
 /**
  * @typedef {Object} RayCameraOptions
@@ -89,6 +95,11 @@ export class RayCamera {
        * @type {Array}
        */
       this._z_buffer = null;
+      /**
+       * The buffer for the minimap.
+       * @type {p5.Framebuffer}
+       */
+      this._minimap_buffer = null;
 
       this.calc_viewport();
    }
@@ -177,31 +188,6 @@ export class RayCamera {
    }
 
    /**
-    * Displays the camera on the canvas.
-    *
-    * @private
-    */
-   _display_camera() {
-      push();
-
-      fill(WHITE);
-      stroke(WHITE);
-      circle(this._pos_vec.x, this._pos_vec.y, 10);
-
-      stroke(0, 0, 255);
-      line(this._pos_vec.x, this._pos_vec.y, this._plane_display_end_vec.x, this._plane_display_end_vec.y);
-      line(this._pos_vec.x, this._pos_vec.y, this._plane_display_start_vec.x, this._plane_display_start_vec.y);
-      line(
-         this._plane_display_start_vec.x,
-         this._plane_display_start_vec.y,
-         this._plane_display_end_vec.x,
-         this._plane_display_end_vec.y
-      );
-
-      pop();
-   }
-
-   /**
     * Calculates the projection plane of the camera.
     *
     * @private
@@ -217,9 +203,6 @@ export class RayCamera {
       this._plane_center_vec.x = this._pos_vec.x;
       this._plane_center_vec.y = this._pos_vec.y;
       this._plane_center_vec.add(this._dir_vec);
-
-      this._plane_display_start_vec = p5.Vector.sub(this._plane_center_vec, this._plane_vec);
-      this._plane_display_end_vec = p5.Vector.add(this._plane_center_vec, this._plane_vec);
    }
 
    /**
@@ -343,7 +326,7 @@ export class RayCamera {
          const distance = this._options.fisheye_correction ? line_data.perp_distance : line_data.distance;
 
          const world_line_height = (this._options.scene.height / distance) * this._options.scene.tile_height;
-         const line_height = int(map(world_line_height, 0, this._options.scene.height, 0, this._viewport.height));
+         const line_height = int(map_range(world_line_height, 0, this._options.scene.height, 0, this._viewport.height));
 
          let draw_start = int(-line_height / 2 + this._viewport.height / 2);
          draw_start = draw_start < 0 ? 0 : draw_start;
@@ -430,22 +413,25 @@ export class RayCamera {
 
          const inv_det = 1 / (this._plane_vec.x * this._dir_vec.y - this._dir_vec.x * this._plane_vec.y);
          const transform_x = inv_det * (this._dir_vec.y * sprite_x - this._dir_vec.x * sprite_y);
-         const transform_y = inv_det * (this._plane_vec.y * sprite_x * -1 + this._plane_vec.x * sprite_y);
-         //                                                             ^ idk y i need to inverse it here
+         const transform_y = inv_det * (this._plane_vec.y * -1 * sprite_x + this._plane_vec.x * sprite_y);
+         //                                                  ^ idk y i need to inverse it here
 
-         const width = ray_collisions.length - 1;
+         const width = this._viewport.width;
          const height = this._viewport.height;
 
          const sprite_screen_x = int((width / 2) * (1 - transform_x / transform_y));
-         const sprite_height = abs(int(height / transform_y));
+
+         const _sprite_width = abs(int(this._options.scene.height / transform_y)) * this._options.scene.tile_width;
+         const _sprite_height = abs(int(this._options.scene.height / transform_y)) * this._options.scene.tile_height;
+
+         const sprite_width = int(map_range(_sprite_width, 0, this._options.scene.width, 0, this._viewport.width));
+         const sprite_height = int(map_range(_sprite_height, 0, this._options.scene.height, 0, this._viewport.height));
 
          let draw_start_y = int(-sprite_height / 2 + height / 2);
          if (draw_start_y < 0) draw_start_y = 0;
          let draw_end_y = int(sprite_height / 2 + height / 2);
          if (draw_end_y >= height) draw_end_y = height - 1;
 
-         const _sprite_width = abs(int(height / transform_y));
-         const sprite_width = int(map_range(_sprite_width, 0, this._viewport.width, 0, width));
          let draw_start_x = int(-sprite_width / 2 + sprite_screen_x);
          if (draw_start_x < 0) draw_start_x = 0;
          let draw_end_x = int(sprite_width / 2 + sprite_screen_x);
@@ -480,21 +466,91 @@ export class RayCamera {
    }
 
    /**
+    * Displays the camera on the canvas.
+    *
+    * @private
+    */
+   _display_camera(x_pos, y_pos, size_factor) {
+      const dir_vec = this._dir_vec.copy();
+      dir_vec.setMag(CAMERA_PLANE_DISTANCE);
+      const plane_vec = this._plane_vec.copy();
+      plane_vec.mult(CAMERA_PLANE_DISTANCE);
+      const plane_center_vec = this._plane_center_vec.copy();
+      plane_center_vec.add(dir_vec);
+
+      const camera_plane_start_x = (plane_center_vec.x - plane_vec.x) * size_factor;
+      const camera_plane_start_y = (plane_center_vec.y - plane_vec.y) * size_factor;
+
+      const camera_plane_end_x = (plane_center_vec.x + plane_vec.x) * size_factor;
+      const camera_plane_end_y = (plane_center_vec.y + plane_vec.y) * size_factor;
+
+      stroke(GREEN);
+      fill(...GREEN, 255 / 10);
+      triangle(x_pos, y_pos, camera_plane_start_x, camera_plane_start_y, camera_plane_end_x, camera_plane_end_y);
+      fill(WHITE);
+      stroke(WHITE);
+      circle(x_pos, y_pos, 10);
+   }
+
+   /**
+    * Renders a minimap of the scene and displays it on the canvas.
+    *
+    * @param {number} sizeFactor - the scale factor to resize the scene for the minimap.
+    */
+   _render_minimap(size_factor) {
+      if (!this._minimap_buffer) {
+         this._minimap_buffer = createFramebuffer({
+            depth: false
+         });
+      }
+
+      const camera_pos_x = this._pos_vec.x * size_factor;
+      const camera_pos_y = this._pos_vec.y * size_factor;
+
+      this._minimap_buffer.draw(() => {
+         background(BLACK);
+         this._display_camera(camera_pos_x, camera_pos_y, size_factor);
+         this._options.scene.render(size_factor);
+      });
+
+      noFill();
+      stroke(GREEN);
+      rect(0, 0, MINIMAP_SIZE_WIDTH, MINIMAP_SIZE_WIDTH);
+
+      image(
+         this._minimap_buffer,
+         0,
+         0,
+         MINIMAP_SIZE_WIDTH,
+         MINIMAP_SIZE_WIDTH,
+         camera_pos_x - MINIMAP_SIZE_WIDTH / 2 + this._options.scene.width / 2,
+         camera_pos_y - MINIMAP_SIZE_WIDTH / 2 + this._options.scene.height / 2,
+         MINIMAP_SIZE_WIDTH,
+         MINIMAP_SIZE_WIDTH
+      );
+   }
+
+   /**
     * Renders the current view buffer based on the given ray collisions.
     *
     * @param {Array} ray_collisions - The ray collisions array.
     */
    render(ray_collisions) {
-      this._view_buffer.pixels.fill(0);
+      // this._view_buffer.pixels.fill(...WHITE);
+
       // actually renders ceiling too
       this._render_floor(this._view_buffer);
       this._render_walls(ray_collisions, this._view_buffer, this._z_buffer);
       if (this._options.show_sprites) {
          this._render_sprites(ray_collisions, this._view_buffer, this._z_buffer);
       }
+
       this._view_buffer.updatePixels();
 
+      translate(-this._options.scene.width / 2, -this._options.scene.height / 2);
       image(this._view_buffer, 0, 0, this._options.scene.width, this._options.scene.height);
+
+      this._render_minimap(SIZE_FACTOR);
    }
 
    /**

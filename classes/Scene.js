@@ -9,6 +9,7 @@ import { TEX_WIDTH, TEX_HEIGHT } from 'textures';
  * @property {number} height - the height of the level
  * @property {Object} level_data - the data containing raw_data and sprites for the level
  * @property {Object} textures - the textures for the level
+ * @property {Object} fonts
  */
 
 /*  The SDFScene class represents a class containing all information about objects and sprites for the level. */
@@ -138,14 +139,14 @@ export class SDFScene {
 
    /**
     * Renders all objects and sprites in the scene.
+    *
+    * @param {number} [size_factor=1] - The scaling factor to apply to the size of the objects and sprites.
     */
-   render() {
-      // push();
-      this.objects.forEach((object) => object.render());
+   render(size_factor = 1) {
+      this.objects.forEach((object) => object.render(size_factor));
       this.sprites.forEach((sprite) => {
          fill(0, 0, 255);
-         circle(sprite.x, sprite.y, 10);
+         circle(sprite.x * size_factor, sprite.y * size_factor, 10);
       });
-      // pop();
    }
 }

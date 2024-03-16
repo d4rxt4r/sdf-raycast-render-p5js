@@ -9,6 +9,8 @@ FIXME:
 
 Possible performance improvements:
 
+[x] use p5.Graphics instead of p5.Image
+[x] use WebGL Framebuffers to draw graphics 
 [x] use native JS call for Maths functions
 (sin, cos, max, etc..)
 [x] 2. don't construct p5.Color objects than array of values can be used

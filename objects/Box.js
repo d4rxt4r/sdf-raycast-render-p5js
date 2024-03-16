@@ -42,15 +42,32 @@ class SDFBox extends BaseObject {
       };
    }
 
-   render() {
+   /**
+    * Render the box object.
+    *
+    * @param {number} [size_factor=1] - The size factor to scale the rendering.
+    * @return {void} This function does not return a value.
+    */
+   render(size_factor = 1) {
       noStroke();
       fill(this._color);
-      rect(this.x, this.y, this._w, this._h);
+      const x = this.x * size_factor;
+      const y = this.y * size_factor;
+      const w = this._w * size_factor;
+      const h = this._h * size_factor;
+      rect(x, y, w, h);
       if (this._texture) {
-         image(this._texture.data, this.x, this.y, this._w, this._h);
+         image(this._texture.data, x, y, w, h);
       }
    }
 
+   /**
+    * Generate a random box object.
+    *
+    * @param {number} w - The width of the box.
+    * @param {number} h - The height of the box.
+    * @return {SDFBox} The generated box object.
+    */
    static gen(w, h) {
       return new SDFBox(random(20, w - 20), random(20, h - 20), random(15, 50), random(15, 50));
    }

@@ -19,10 +19,10 @@ class SDFCircle extends BaseObject {
       };
    }
 
-   render() {
+   render(size_factor = 1) {
       noStroke();
       fill(this._color);
-      circle(this.x, this.y, this.r * 2);
+      circle(this.x * size_factor, this.y * size_factor, this.r * 2 * size_factor);
    }
 
    static gen(w, h) {

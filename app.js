@@ -1,9 +1,10 @@
-import { FRAME_RATE, USE_WEBGL, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'const';
+import { FRAME_RATE, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'const';
 import { preload_textures } from 'textures';
 import { GUI, SDFScene, RayCamera } from 'classes';
 import { LEVEL_LIST } from 'levels';
 import { round } from 'math_utils';
 
+const fonts = { inconsolata: loadFont('lib/Inconsolata.otf') };
 const textures = await preload_textures();
 
 const UserUI = new GUI();
@@ -13,7 +14,8 @@ const Scene = new SDFScene({
    width: WIDTH,
    height: HEIGHT,
    level_data: LEVEL_LIST[UserUI.get('level_select')],
-   textures
+   textures,
+   fonts
 });
 
 const Camera = new RayCamera({
@@ -32,7 +34,7 @@ const Camera = new RayCamera({
 
 function setup() {
    frameRate(FRAME_RATE);
-   createCanvas(WIDTH, HEIGHT, USE_WEBGL ? WEBGL2 : P2D);
+   createCanvas(WIDTH, HEIGHT, WEBGL);
 
    UserUI.hook({
       type: 'custom',
@@ -100,8 +102,6 @@ function setup() {
 
 function draw() {
    Camera.march(Scene.objects);
-   // Scene.render();
-
    UserUI.update();
 
    if (keyIsPressed) {
@@ -111,7 +111,7 @@ function draw() {
    if (UserUI.get('show_fps')) {
       fill(100, 255, 0);
       noStroke();
-      textFont('Courier New', 16);
+      textFont(fonts.inconsolata, 16);
       textStyle(BOLD);
       text(`FPS: ${round(frameRate())}`, WIDTH - 100, 20);
    }

@@ -47,10 +47,17 @@ class SDFTriangle extends BaseObject {
       };
    }
 
-   render() {
+   render(size_factor = 1) {
       noStroke();
       fill(this._color);
-      triangle(this.ax, this.ay, this.bx, this.by, this.cx, this.cy);
+      triangle(
+         this.ax * size_factor,
+         this.ay * size_factor,
+         this.bx * size_factor,
+         this.by * size_factor,
+         this.cx * size_factor,
+         this.cy * size_factor
+      );
    }
 
    static gen(w, h) {
