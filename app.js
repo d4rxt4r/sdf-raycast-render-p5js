@@ -49,7 +49,6 @@ function setup() {
             level_data: LEVEL_LIST[value],
             id: value
          });
-         Camera.set_sprites(Scene.sprites);
          Camera.set_pos(Scene.get_center_vec());
       }
    });
