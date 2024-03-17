@@ -85,12 +85,12 @@ export class RayCamera {
        * Array to store the order of sprites in the scene.
        * @type {Array}
        */
-      this._sprite_order = new Array(this._options.scene.sprites?.length || 0);
+      this._sprite_order = null;
       /**
        * Array to store the distance of sprites from the camera.
        * @type {Array}
        */
-      this._sprite_distance = new Array(this._options.scene.sprites?.length || 0);
+      this._sprite_distance = null;
       /**
        * Array to store the z-buffer.
        * @type {Array}
@@ -118,16 +118,6 @@ export class RayCamera {
       this._view_buffer = createImage(this._viewport.width, this._viewport.height);
       this._view_buffer.loadPixels();
       this._z_buffer = new Array(this._viewport.w);
-   }
-
-   /**
-    * Set the sprites to be rendered by the camera.
-    *
-    * @param {Object[]} sprites - An array of sprites to be rendered by the camera.
-    */
-   set_sprites(sprites) {
-      this._sprite_order = new Array(sprites?.length || 0);
-      this._sprite_distance = new Array(sprites?.length || 0);
    }
 
    /**
@@ -401,13 +391,14 @@ export class RayCamera {
     */
    _render_sprites(ray_collisions, view_buffer, z_buffer) {
       const numSprites = this._options.scene.sprites.length;
-      for (let i = 0; i < numSprites; i++) {
-         this._sprite_order[i] = i;
-         this._sprite_distance[i] =
-            (this._pos_vec.x - this._options.scene.sprites[i].x) *
-               (this._pos_vec.x - this._options.scene.sprites[i].x) +
-            (this._pos_vec.y - this._options.scene.sprites[i].y) * (this._pos_vec.y - this._options.scene.sprites[i].y);
-      }
+      const { x: posX, y: posY } = this._pos_vec;
+      this._sprite_order = Array.from({ length: numSprites }, (_, i) => i);
+      this._sprite_distance = this._sprite_order.map((_, i) => {
+         const { x, y } = this._options.scene.sprites[i];
+         const dx = posX - x;
+         const dy = posY - y;
+         return dx * dx + dy * dy;
+      });
 
       this._sort_sprites();
 
@@ -432,30 +423,40 @@ export class RayCamera {
          const sprite_width = int(map_range(_sprite_width, 0, this._options.scene.width, 0, this._viewport.width));
          const sprite_height = int(map_range(_sprite_height, 0, this._options.scene.height, 0, this._viewport.height));
 
+         let draw_start_x = int(-sprite_width / 2 + sprite_screen_x);
+         if (draw_start_x < 0) draw_start_x = 0;
          let draw_start_y = int(-sprite_height / 2 + height / 2);
          if (draw_start_y < 0) draw_start_y = 0;
+         
+         let draw_end_x = int(sprite_width / 2 + sprite_screen_x);
+         if (draw_end_x >= width) draw_end_x = width - 1;
          let draw_end_y = int(sprite_height / 2 + height / 2);
          if (draw_end_y >= height) draw_end_y = height - 1;
 
-         let draw_start_x = int(-sprite_width / 2 + sprite_screen_x);
-         if (draw_start_x < 0) draw_start_x = 0;
-         let draw_end_x = int(sprite_width / 2 + sprite_screen_x);
-         if (draw_end_x >= width) draw_end_x = width;
-
          const texture = this._options.scene.textures[sprite.texture_id];
-         for (let stripe = draw_start_x; stripe <= draw_end_x; stripe++) {
-            const tex_x = int(
+         for (let stripe = draw_start_x; stripe < draw_end_x; stripe++) {
+            let tex_x = int(
                int((256 * (stripe - (-sprite_width / 2 + sprite_screen_x)) * texture.w) / sprite_width) / 256
             );
+
+            if (tex_x < 0) {
+               tex_x = 0;
+            }
 
             if (transform_y > 0 && stripe >= 0 && stripe <= height && transform_y < z_buffer[stripe]) {
                for (let y = draw_start_y; y < draw_end_y; y++) {
                   const d = y * 256 - height * 128 + sprite_height * 128;
-                  const tex_y = int((d * texture.h) / sprite_height / 256);
+                  let tex_y = int((d * texture.h) / sprite_height / 256);
+                  if (tex_y < 0) {
+                     tex_y = 0;
+                  }
                   const clr = texture.raw_pixels[texture.w * tex_y + tex_x];
 
                   const [r, g, b, a] = clr || [0, 0, 0, 0];
                   if (r + g + b === 0 || a === 0) {
+                     if (a === 0) {
+                        console.error("TEXTURE CORD BAD")
+                     }
                      continue;
                   }
 

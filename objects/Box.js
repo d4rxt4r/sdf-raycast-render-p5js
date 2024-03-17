@@ -22,7 +22,7 @@ class SDFBox extends BaseObject {
       let tex_x_pos;
       const d = sqrt(dx * dx + dy * dy);
 
-      if (d <= ACCURACY * 2) {
+      if (d <= ACCURACY * 10) {
          tex_x_pos = map_range(
             is_side_hit ? abs(this.y - cy) : abs(this.x - cx),
             0,
