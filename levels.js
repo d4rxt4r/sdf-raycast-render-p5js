@@ -1,9 +1,9 @@
 const TEST_LEVEL_0 = {
    data: [
       [0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 0, 11, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
-      [0, 1, 0, 0, 0, 1, 0],
+      [0, 11, 0, 0, 0, 11, 0],
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0]
    ],
@@ -11,7 +11,7 @@ const TEST_LEVEL_0 = {
       {
          x: 4,
          y: 3,
-         texture_id: 7,
+         texture_id: 8,
          name: 'light'
       }
    ]
@@ -41,75 +41,75 @@ const TEST_LEVEL_11 = {
 
 const TEST_LEVEL_01 = {
    data: [
-      [1, 1, 11, 110, 11, 1, 1],
-      [1, 0, 0, 0, 0, 0, 1],
+      [11, 11, 11, 111, 11, 11, 11],
       [11, 0, 0, 0, 0, 0, 11],
-      [1, 0, 0, 0, 0, 0, 1],
       [11, 0, 0, 0, 0, 0, 11],
-      [1, 0, 0, 0, 0, 0, 1],
-      [1, 1, 11, 1, 11, 1, 1]
+      [11, 0, 0, 0, 0, 0, 11],
+      [11, 0, 0, 0, 0, 0, 11],
+      [11, 0, 0, 0, 0, 0, 11],
+      [11, 11, 11, 11, 11, 11, 11]
    ],
    entities: [
       {
          x: 3,
          y: 2,
-         texture_id: 5,
+         texture_id: 6,
          name: 'column'
       },
       {
          x: 4,
          y: 2,
-         texture_id: 5,
+         texture_id: 6,
          name: 'column'
       },
       {
          x: 5,
          y: 2,
-         texture_id: 5,
+         texture_id: 6,
          name: 'column'
       },
 
       {
          x: 3,
          y: 6,
-         texture_id: 6,
+         texture_id: 7,
          name: 'barrel'
       },
       {
          x: 4,
          y: 6,
-         texture_id: 6,
+         texture_id: 7,
          name: 'barrel'
       },
       {
          x: 5,
          y: 6,
-         texture_id: 6,
+         texture_id: 7,
          name: 'barrel'
       },
 
       {
          x: 3,
          y: 3,
-         texture_id: 7,
+         texture_id: 8,
          name: 'light'
       },
       {
          x: 5,
          y: 3,
-         texture_id: 7,
+         texture_id: 8,
          name: 'light'
       },
       {
          x: 3,
          y: 5,
-         texture_id: 7,
+         texture_id: 8,
          name: 'light'
       },
       {
          x: 5,
          y: 5,
-         texture_id: 7,
+         texture_id: 8,
          name: 'light'
       }
    ]
@@ -117,75 +117,75 @@ const TEST_LEVEL_01 = {
 
 const TEST_LEVEL_2 = {
    data: [
-      [1, 1, 11, 1, 1, 11, 1],
-      [1, 0, 0, 0, 0, 0, 1],
-      [11, 0, 1, 0, 1, 0, 11],
-      [1, 0, 1, 0, 1, 0, 1],
-      [1, 0, 1, 0, 1, 0, 1],
+      [11, 11, 11, 12, 11, 11, 11],
       [11, 0, 0, 0, 0, 0, 11],
-      [1, 1, 11, 1, 1, 11, 1]
+      [11, 0, 11, 0, 11, 0, 11],
+      [12, 0, 11, 0, 11, 0, 12],
+      [11, 0, 11, 0, 11, 0, 11],
+      [11, 0, 0, 0, 0, 0, 11],
+      [11, 11, 11, 12, 11, 11, 11]
    ],
    entities: [
       {
          x: 3,
          y: 2,
-         texture_id: 5,
+         texture_id: 6,
          name: 'column'
       },
       {
          x: 4,
          y: 2,
-         texture_id: 5,
+         texture_id: 6,
          name: 'column'
       },
       {
          x: 5,
          y: 2,
-         texture_id: 5,
+         texture_id: 6,
          name: 'column'
       },
 
       {
          x: 3,
          y: 6,
-         texture_id: 6,
+         texture_id: 7,
          name: 'barrel'
       },
       {
          x: 4,
          y: 6,
-         texture_id: 6,
+         texture_id: 7,
          name: 'barrel'
       },
       {
          x: 5,
          y: 6,
-         texture_id: 6,
+         texture_id: 7,
          name: 'barrel'
       },
 
       {
          x: 2,
          y: 2,
-         texture_id: 7,
+         texture_id: 8,
          name: 'light'
       },
       {
          x: 5,
          y: 6,
-         texture_id: 7,
+         texture_id: 8,
          name: 'light'
       },
       {
          x: 2,
          y: 6,
-         texture_id: 7,
+         texture_id: 8,
          name: 'light'
       },
       {
          x: 6,
          y: 6,
-         texture_id: 7,
+         texture_id: 8,
          name: 'light'
       }
    ]
@@ -193,15 +193,15 @@ const TEST_LEVEL_2 = {
 
 const TEST_LEVEL_10 = {
    data: [
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 30, 0, 0, 31, 1, 30, 0, 0, 2, 31, 1],
-      [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-      [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-      [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [1, 32, 0, 0, 0, 0, 0, 0, 0, 2, 33, 1],
-      [1, 1, 1, 1, 32, 0, 33, 1, 1, 1, 1, 1]
+      [11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11],
+      [11, 30, 0, 0, 31, 11, 30, 0, 0, 2, 31, 11],
+      [11, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 11],
+      [11, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 11],
+      [11, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 11],
+      [11, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 11],
+      [11, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 11],
+      [11, 32, 0, 0, 0, 0, 0, 0, 0, 2, 33, 11],
+      [11, 11, 11, 11, 32, 0, 33, 11, 11, 11, 11, 11]
    ]
 };
 
@@ -234,7 +234,7 @@ const TEST_LEVEL_19 = {
    ]
 };
 
-const LEVELS = [TEST_LEVEL_02, TEST_LEVEL_0, TEST_LEVEL_11, TEST_LEVEL_01, TEST_LEVEL_2, TEST_LEVEL_10, TEST_LEVEL_19];
+const LEVELS = [TEST_LEVEL_02, TEST_LEVEL_0, TEST_LEVEL_11, TEST_LEVEL_01, TEST_LEVEL_2, TEST_LEVEL_10];
 
 function createLevelSelect(x, y) {
    const levelSelect = createSelect();

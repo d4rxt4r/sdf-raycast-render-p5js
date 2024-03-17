@@ -15,9 +15,9 @@ import {
 } from 'textures';
 import { SDFScene } from 'classes';
 
-const FLOOR_TEXTURE = 2;
-const FLOOR_TEXTURE2 = 8;
-const CEILING_TEXTURE = 3;
+const FLOOR_TEXTURE = 3;
+const FLOOR_TEXTURE2 = 9;
+const CEILING_TEXTURE = 4;
 const CAMERA_PLANE_DISTANCE = 100;
 
 /**
@@ -329,11 +329,7 @@ export class RayCamera {
          draw_end = draw_end >= this._viewport.height ? this._viewport.height - 1 : draw_end;
 
          if (this._options.show_textures) {
-            if (line_data.texture_id === undefined || line_data.texture_id === null) {
-               continue;
-            }
-
-            const texture = this._options.scene.textures[line_data.texture_id];
+            const texture = this._options.scene.textures[line_data.texture_id ?? 0];
             const step = (1.0 * texture.h) / line_height;
 
             const tex_x = int(line_data.tex_x_pos);
@@ -427,7 +423,7 @@ export class RayCamera {
          if (draw_start_x < 0) draw_start_x = 0;
          let draw_start_y = int(-sprite_height / 2 + height / 2);
          if (draw_start_y < 0) draw_start_y = 0;
-         
+
          let draw_end_x = int(sprite_width / 2 + sprite_screen_x);
          if (draw_end_x >= width) draw_end_x = width - 1;
          let draw_end_y = int(sprite_height / 2 + height / 2);
@@ -455,7 +451,7 @@ export class RayCamera {
                   const [r, g, b, a] = clr || [0, 0, 0, 0];
                   if (r + g + b === 0 || a === 0) {
                      if (a === 0) {
-                        console.error("TEXTURE CORD BAD")
+                        console.error('TEXTURE CORD BAD');
                      }
                      continue;
                   }

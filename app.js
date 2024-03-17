@@ -1,4 +1,4 @@
-import { FRAME_RATE, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'const';
+import { TARGET_FPS, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'const';
 import { BLACK, GREEN, preload_textures } from 'textures';
 import { GUI, SDFScene, RayCamera } from 'classes';
 import { LEVEL_LIST } from 'levels';
@@ -35,7 +35,7 @@ const Camera = new RayCamera({
 });
 
 function setup() {
-   frameRate(FRAME_RATE);
+   frameRate(UserUI.get('target_fps') || TARGET_FPS);
    createCanvas(WIDTH, HEIGHT, WEBGL);
 
    UserUI.hook({

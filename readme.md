@@ -13,6 +13,7 @@ FIXME
 
 Possible performance improvements:
 
+-  [ ] calculate sprites order only on player movement 
 -  [x] use p5.Graphics instead of p5.Image
 -  [x] use WebGL Framebuffers to draw graphics
 -  [x] use native JS call for Maths functions

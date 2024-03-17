@@ -4,7 +4,7 @@ import SDFTriangle from './objects/Triangle.js';
 
 import { WHITE } from 'textures';
 
-function gen_obj(type, col, row, tileWidth, tileHeight, textures) {
+function gen_obj(type, col, row, tile_width, tile_height, textures) {
    if (!type) {
       throw new Error('Unrecognized Object Type');
    }
@@ -12,36 +12,36 @@ function gen_obj(type, col, row, tileWidth, tileHeight, textures) {
    if (Number(String(type).charAt(0)) === 1) {
       const tex_id = String(type).length > 1 ? Number(String(type).substring(1)) : 0;
 
-      return new SDFBox(col * tileWidth, row * tileHeight, tileWidth, tileHeight, WHITE, textures, tex_id);
+      return new SDFBox(col * tile_width, row * tile_height, tile_width, tile_height, WHITE, textures, tex_id);
    }
 
    if (type === 2) {
       return new SDFCircle(
-         col * tileWidth + tileWidth / 2,
-         row * tileHeight + tileHeight / 2,
-         (tileWidth + tileHeight) / 10
+         col * tile_width + tile_width / 2,
+         row * tile_height + tile_height / 2,
+         (tile_width + tile_height) / 10
          // WHITE
       );
    }
 
    if (type === 30) {
-      return new SDFTriangle(col * tileWidth, row * tileHeight, tileWidth, tileHeight, WHITE);
+      return new SDFTriangle(col * tile_width, row * tile_height, tile_width, tile_height, WHITE);
    }
 
    if (type === 31) {
-      return new SDFTriangle(col * tileWidth + tileWidth, row * tileHeight, -tileWidth, tileHeight, WHITE, -1);
+      return new SDFTriangle(col * tile_width + tile_width, row * tile_height, -tile_width, tile_height, WHITE, -1);
    }
 
    if (type === 32) {
-      return new SDFTriangle(col * tileWidth, row * tileHeight + tileHeight, tileWidth, -tileHeight, WHITE, -1);
+      return new SDFTriangle(col * tile_width, row * tile_height + tile_height, tile_width, -tile_height, WHITE, -1);
    }
 
    if (type === 33) {
       return new SDFTriangle(
-         col * tileWidth + tileWidth,
-         row * tileHeight + tileHeight,
-         -tileWidth,
-         -tileHeight,
+         col * tile_width + tile_width,
+         row * tile_height + tile_height,
+         -tile_width,
+         -tile_height,
          WHITE
       );
    }

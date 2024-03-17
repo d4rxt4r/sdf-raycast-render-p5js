@@ -1,5 +1,5 @@
-const TEX_WIDTH = 128;
-const TEX_HEIGHT = 128;
+const TEX_WIDTH = 64;
+const TEX_HEIGHT = 64;
 
 const SHADING_TYPE = {
    NONE: 0,
@@ -16,6 +16,7 @@ const FLOOR_COLOR = [200, 200, 200];
 const CEILING_COLOR = [100, 100, 100];
 
 const TEX_PATHS = [
+   'textures/empty.png',
    'textures/redbrick.png',
    'textures/eagle.png',
    'textures/mossy.png',
