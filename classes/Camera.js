@@ -103,6 +103,7 @@ export class RayCamera {
       this._minimap_buffer = null;
 
       this.calc_viewport();
+      this._sort_sprites();
    }
 
    /**
@@ -158,6 +159,8 @@ export class RayCamera {
       if (keyIsDown(68)) {
          this._dir_vec.rotate(ROTATE_SPEED);
       }
+
+      this._sort_sprites();
    }
 
    /**
@@ -202,8 +205,18 @@ export class RayCamera {
     * @private
     */
    _sort_sprites() {
-      this._sprite_distance.sort((a, b) => a - b);
-      this._sprite_order.sort((a, b) => this._sprite_distance.indexOf(a) - this._sprite_distance.indexOf(b));
+      const sprites = this._options.scene.sprites;
+      const { x: pos_x, y: pos_y } = this._pos_vec;
+
+      this._sprite_distance = Array.from({ length: sprites.length }, (_, i) => {
+         const { x, y } = sprites[i];
+         const dx = pos_x - x;
+         const dy = pos_y - y;
+         return dx * dx + dy * dy;
+      });
+
+      this._sprite_order = Array.from(this._sprite_distance.keys());
+      this._sprite_order.sort((a, b) => this._sprite_distance[b] - this._sprite_distance[a]);
    }
 
    /**
@@ -386,19 +399,7 @@ export class RayCamera {
     * @private
     */
    _render_sprites(ray_collisions, view_buffer, z_buffer) {
-      const numSprites = this._options.scene.sprites.length;
-      const { x: posX, y: posY } = this._pos_vec;
-      this._sprite_order = Array.from({ length: numSprites }, (_, i) => i);
-      this._sprite_distance = this._sprite_order.map((_, i) => {
-         const { x, y } = this._options.scene.sprites[i];
-         const dx = posX - x;
-         const dy = posY - y;
-         return dx * dx + dy * dy;
-      });
-
-      this._sort_sprites();
-
-      for (let i = 0; i < numSprites; i++) {
+      for (let i = 0; i < this._options.scene.sprites.length; i++) {
          const sprite = this._options.scene.sprites[this._sprite_order[i]];
          const sprite_x = sprite.x - this._pos_vec.x;
          const sprite_y = sprite.y - this._pos_vec.y;

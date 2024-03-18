@@ -8,7 +8,7 @@ FIXME
 
 -  [ ] sprites are not drawn ar x-res > 50% wtf lol
 -  [ ] sprites size is discrete, use floats?
--  [ ] sprites sorting is not working properly
+-  [x] sprites sorting is not working properly
 -  [ ] is_side_hit is wrong than looking straight up/down/left/right
 
 Possible performance improvements:

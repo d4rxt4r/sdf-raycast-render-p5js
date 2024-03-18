@@ -133,6 +133,8 @@ function keyPressed() {
    if (keyCode === 72) {
       UserUI.toggle();
    }
+
+   Camera.move();
 }
 
 function windowResized() {
