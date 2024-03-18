@@ -88,8 +88,8 @@ export class SDFScene {
       this.id = id;
       this.width = width;
       this.height = height;
-      this.sprites = [...entities];
-      this._raw_data = [...data];
+      this.sprites = structuredClone(entities);
+      this._raw_data = structuredClone(data);
 
       this._spawn_objects();
       this._set_sprites_scene_coordinates();

@@ -12,7 +12,8 @@ const TEST_LEVEL_0 = {
          x: 4,
          y: 3,
          texture_id: 8,
-         name: 'light'
+         name: 'light',
+         translucent: true
       }
    ]
 };
@@ -92,25 +93,29 @@ const TEST_LEVEL_01 = {
          x: 3,
          y: 3,
          texture_id: 8,
-         name: 'light'
+         name: 'light',
+         translucent: true
       },
       {
          x: 5,
          y: 3,
          texture_id: 8,
-         name: 'light'
+         name: 'light',
+         translucent: true
       },
       {
          x: 3,
          y: 5,
          texture_id: 8,
-         name: 'light'
+         name: 'light',
+         translucent: true
       },
       {
          x: 5,
          y: 5,
          texture_id: 8,
-         name: 'light'
+         name: 'light',
+         translucent: true
       }
    ]
 };

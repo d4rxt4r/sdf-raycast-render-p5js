@@ -33,8 +33,9 @@ TODO List:
 - [x] add minimap
 - [ ] add side shading to all objects
 - [ ] add texture to all objects
-- [ ] make entities a class to give them modify attrs
+- [ ] make sprites a class to give them modify attrs
 - [ ] add transparent textures
+- [x] add transparent sprites
 - [ ] implement distance-based texture shading
 - [ ] add collisions
 - [ ] implement DDA to compare to SDF
