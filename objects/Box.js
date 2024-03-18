@@ -3,35 +3,33 @@ import { ACCURACY } from 'const';
 import { map_range, max, sqrt, abs } from 'math_utils';
 
 class SDFBox extends BaseObject {
-   constructor(x, y, width, height, color, textures, texture_id) {
-      super(x, y);
+   constructor({ x, y, width, height, color, textures, texture_id }) {
+      super({ x, y });
 
       this._w = width;
       this._h = height;
-      this._color = color;
-      this._side_color = this._color.map((l, i) => (i === 3 ? l : l / 2));
-      this._texture_id = texture_id;
-      this._texture = textures[texture_id];
+      this._color = color ?? this._color;
+      this._texture_id = texture_id ?? 0;
+      this._texture = textures ? textures[texture_id] : null;
    }
 
    collide(cx, cy) {
-      const dx = max(0, this.x - cx, cx - (this.x + this._w));
-      const dy = max(0, this.y - cy, cy - (this.y + this._h));
+      const l_dx = this.x - cx;
+      const l_dy = this.y - cy;
+
+      let dx = max(0, l_dx, cx - (this.x + this._w));
+      let dy = max(0, l_dy, cy - (this.y + this._h));
       const is_side_hit = dx >= dy;
 
-      let tex_x_pos;
       const d = sqrt(dx * dx + dy * dy);
-
-      if (d <= ACCURACY * 10) {
-         tex_x_pos = map_range(
-            is_side_hit ? abs(this.y - cy) : abs(this.x - cx),
-            0,
-            is_side_hit ? this._h : this._w,
-            0,
-            this._texture.w - 1,
-            true
-         );
-      }
+      const tex_x_pos = map_range(
+         is_side_hit ? abs(l_dy) : abs(l_dx),
+         0,
+         is_side_hit ? this._h : this._w,
+         0,
+         this._texture.w - 1,
+         true
+      );
 
       return {
          distance: d,
@@ -70,7 +68,12 @@ class SDFBox extends BaseObject {
     * @return {SDFBox} The generated box object.
     */
    static gen(w, h) {
-      return new SDFBox(random(20, w - 20), random(20, h - 20), random(15, 50), random(15, 50));
+      return new SDFBox({
+         x: random(20, w - 20),
+         x: random(20, h - 20),
+         width: random(15, 50),
+         height: random(15, 50)
+      });
    }
 }
 

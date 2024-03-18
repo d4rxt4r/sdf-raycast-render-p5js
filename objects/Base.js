@@ -3,10 +3,11 @@ class BaseObject {
    /**
     * Constructs a new BaseObject.
     *
-    * @param {number} x - The x position of the object.
-    * @param {number} y - The y position of the object.
++    * @param {Object} options - The options for the object.
++    * @param {number} options.x - The x position of the object.
++    * @param {number} options.y - The y position of the object.
     */
-   constructor(x, y) {
+   constructor({ x, y }) {
       /**
        * The x position of the object.
        * @type {number}
@@ -25,6 +26,13 @@ class BaseObject {
        * @private
        */
       this._color = [random(256), random(256), random(256)];
+   }
+
+   get _side_color() {
+      if (!this._color) {
+         return null;
+      }
+      return this._color.map((l, i) => (i === 3 ? l : l / 2));
    }
 
    /**

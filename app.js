@@ -101,6 +101,13 @@ function setup() {
          Camera.set_pos(Scene.get_center_vec());
       }
    });
+   UserUI.hook({
+      type: 'button',
+      name: 'reset camera plane position',
+      handler: () => {
+         Camera._dir_vec = createVector(0, -1);
+      }
+   });
 }
 
 function draw() {

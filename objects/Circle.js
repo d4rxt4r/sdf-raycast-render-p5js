@@ -1,12 +1,12 @@
 import BaseObject from './Base.js';
 
 class SDFCircle extends BaseObject {
-   constructor(x, y, r, c) {
+   constructor({ x, y, r, color }) {
       super(x, y);
 
       this.r = r;
-      if (c) {
-         this._color = c;
+      if (color) {
+         this._color = color;
       }
    }
 
@@ -26,7 +26,7 @@ class SDFCircle extends BaseObject {
    }
 
    static gen(w, h) {
-      return new SDFCircle(random(20, w - 20), random(20, h - 20), random(5, 20));
+      return new SDFCircle({ x: random(20, w - 20), y: random(20, h - 20), r: random(5, 20) });
    }
 }
 

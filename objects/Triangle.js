@@ -1,28 +1,35 @@
-import { max } from 'math_utils';
+import { max, abs, map_range } from 'math_utils';
 import BaseObject from './Base.js';
 
 class SDFTriangle extends BaseObject {
-   constructor(x, y, a, b, c, sign) {
+   constructor({ x, y, ab_dist, ac_dist, color, sign, textures, texture_id }) {
       super(x, y);
-      this.a = a;
-      this.b = b;
+
+      this.ab_dist = ab_dist;
+      this.ac_dist = ac_dist;
 
       this.ax = x;
       this.ay = y;
-      this.bx = x + a;
+
+      //       ax
+      this.bx = x + ab_dist;
+      //       ay
       this.by = y;
+
+      //       ax
       this.cx = x;
-      this.cy = y + b;
+      //       ay
+      this.cy = y + ac_dist;
 
-      this.abWidth = abs(b);
-      this.bcWidth = abs(dist(this.bx, this.by, this.cx, this.cy));
-      this.caWidth = abs(a);
+      this.ab_dist = abs(ab_dist);
+      this.ac_dist = abs(ac_dist);
+      this.bc_dist = dist(this.bx, this.by, this.cx, this.cy);
 
-      this.sign = sign ?? 1;
+      this._sign = sign ?? 1;
+      this._color = color ?? this._color;
 
-      if (c) {
-         this._color = c;
-      }
+      this._texture_id = texture_id;
+      this._texture = textures ? textures[texture_id] : null;
    }
 
    getDistanceToSide(x1, y1, x2, y2, cx, cy, sideWidth) {
@@ -30,20 +37,25 @@ class SDFTriangle extends BaseObject {
    }
 
    collide(cx, cy) {
-      const abDistance =
-         this.getDistanceToSide(this.ax, this.ay, this.bx, this.by, cx, cy, abs(this.abWidth)) * this.sign;
+      const abDistance = this.getDistanceToSide(this.ax, this.ay, this.bx, this.by, cx, cy, this.ab_dist) * this._sign;
+      const caDistance = this.getDistanceToSide(this.cx, this.cy, this.ax, this.ay, cx, cy, this.ac_dist) * this._sign;
+      const bcDistance = this.getDistanceToSide(this.bx, this.by, this.cx, this.cy, cx, cy, this.bc_dist) * this._sign;
 
-      const bcDistance =
-         this.getDistanceToSide(this.bx, this.by, this.cx, this.cy, cx, cy, abs(this.bcWidth)) * this.sign;
+      const is_side_hit = caDistance >= abDistance && caDistance >= bcDistance;
+      const ab_ca_max = max(abDistance, caDistance);
+      const d = max(ab_ca_max, bcDistance);
 
-      const caDistance =
-         this.getDistanceToSide(this.cx, this.cy, this.ax, this.ay, cx, cy, abs(this.caWidth)) * this.sign;
+      const side_dist = is_side_hit ? abs(abDistance) : abs(caDistance);
+      const side_len = is_side_hit ? this.ab_dist : this.ac_dist;
 
-      const d = max(abDistance, bcDistance, caDistance);
+      const tex_x_pos = map_range(side_dist, 0, side_len, 0, this._texture.w - 1, true);
 
       return {
          distance: d,
-         color: this._color
+         color: this._color,
+         half_color: this._side_color,
+         tex_x_pos,
+         is_side_hit
       };
    }
 
@@ -61,7 +73,12 @@ class SDFTriangle extends BaseObject {
    }
 
    static gen(w, h) {
-      return new SDFTriangle(random(20, w - 20), random(20, h - 20), random(-20, 20), random(-20, 20));
+      return new SDFTriangle({
+         x: random(20, w - 20),
+         y: random(20, h - 20),
+         ab_dist: random(-20, 20),
+         ac_dist: random(-20, 20)
+      });
    }
 }
 

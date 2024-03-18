@@ -18,7 +18,7 @@ import { SDFScene } from 'classes';
 const FLOOR_TEXTURE = 3;
 const FLOOR_TEXTURE2 = 9;
 const CEILING_TEXTURE = 4;
-const CAMERA_PLANE_DISTANCE = 100;
+const CAMERA_PLANE_DISTANCE = 50;
 
 /**
  * @typedef {Object} RayCameraOptions
@@ -326,7 +326,7 @@ export class RayCamera {
          let draw_start = int(-line_height / 2 + this._viewport.height / 2);
          draw_start = draw_start < 0 ? 0 : draw_start;
          let draw_end = draw_start + line_height;
-         draw_end = draw_end >= this._viewport.height ? this._viewport.height - 1 : draw_end;
+         draw_end = draw_end >= this._viewport.height ? this._viewport.height : draw_end;
 
          if (this._options.show_textures) {
             const texture = this._options.scene.textures[line_data.texture_id ?? 0];
@@ -336,7 +336,7 @@ export class RayCamera {
             let tex_pos = (draw_start - this._viewport.height / 2 + line_height / 2) * step;
 
             for (let y = draw_start; y < draw_end; y++) {
-               const texY = int(tex_pos) & (texture.h - 1);
+               const tex_y = int(tex_pos) & (texture.h - 1);
                tex_pos += step;
 
                let display_texture =
@@ -344,10 +344,10 @@ export class RayCamera {
                      ? texture.half_raw_pixels
                      : texture.raw_pixels;
 
-               const tex_color = display_texture[texture.h * texY + tex_x];
+               const tex_color = display_texture[texture.h * tex_y + tex_x];
 
                if (!tex_color) {
-                  console.error('TEXTURE BAD');
+                  console.error('TEXTURE BAD', tex_x, tex_y, texture.h);
                   return;
                }
 
@@ -483,13 +483,16 @@ export class RayCamera {
          fill(...RED, 255);
 
          const ray_dir = createVector(x_pos, y_pos);
-         const draw_index = int(this._options.scene.width / this._viewport.width);
 
          for (let ray = 0; ray < this._viewport.width; ray++) {
             const camera_x = (2 * ray) / this._viewport.width - 1;
+            let distance = ray_collisions[ray].distance;
+            if (!isFinite(distance)) {
+               distance = windowWidth;
+            }
             ray_dir.x = this._dir_vec.x + this._plane_vec.x * camera_x;
             ray_dir.y = this._dir_vec.y + this._plane_vec.y * camera_x;
-            ray_dir.setMag(ray_collisions[ray].distance * size_factor);
+            ray_dir.setMag(distance * size_factor);
             ray_dir.x += x_pos;
             ray_dir.y += y_pos;
 
