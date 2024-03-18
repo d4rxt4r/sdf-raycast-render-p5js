@@ -5,12 +5,13 @@ import {
    BLACK,
    RED,
    GREEN,
-   // BLUE,
+   BLUE,
    SHADING_TYPE,
    FLOOR_COLOR,
    CEILING_COLOR,
-   // get_image_pixel,
+   get_image_pixel,
    set_image_pixel,
+   average_colors,
    lerp_colors
 } from 'textures';
 import { SDFScene } from 'classes';
@@ -170,6 +171,7 @@ export class RayCamera {
     */
    set_pos(pos_vec) {
       this._pos_vec = pos_vec;
+      this._sort_sprites();
    }
 
    /**
@@ -412,13 +414,13 @@ export class RayCamera {
          const width = this._viewport.width;
          const height = this._viewport.height;
 
-         const sprite_screen_x = int((width / 2) * (1 - transform_x / transform_y));
+         const sprite_screen_x = (width / 2) * (1 - transform_x / transform_y);
 
-         const _sprite_width = abs(int(this._options.scene.height / transform_y)) * this._options.scene.tile_width;
-         const _sprite_height = abs(int(this._options.scene.height / transform_y)) * this._options.scene.tile_height;
+         const _sprite_width = abs(this._options.scene.height / transform_y) * this._options.scene.tile_width;
+         const _sprite_height = abs(this._options.scene.height / transform_y) * this._options.scene.tile_height;
 
-         const sprite_width = int(map_range(_sprite_width, 0, this._options.scene.width, 0, this._viewport.width));
-         const sprite_height = int(map_range(_sprite_height, 0, this._options.scene.height, 0, this._viewport.height));
+         const sprite_width = map_range(_sprite_width, 0, this._options.scene.width, 0, this._viewport.width);
+         const sprite_height = map_range(_sprite_height, 0, this._options.scene.height, 0, this._viewport.height);
 
          let draw_start_x = int(-sprite_width / 2 + sprite_screen_x);
          if (draw_start_x < 0) draw_start_x = 0;
@@ -426,9 +428,9 @@ export class RayCamera {
          if (draw_start_y < 0) draw_start_y = 0;
 
          let draw_end_x = int(sprite_width / 2 + sprite_screen_x);
-         if (draw_end_x >= width) draw_end_x = width - 1;
+         if (draw_end_x >= width) draw_end_x = width;
          let draw_end_y = int(sprite_height / 2 + height / 2);
-         if (draw_end_y >= height) draw_end_y = height - 1;
+         if (draw_end_y >= height) draw_end_y = height;
 
          const texture = this._options.scene.textures[sprite.texture_id];
          for (let stripe = draw_start_x; stripe < draw_end_x; stripe++) {
@@ -440,7 +442,7 @@ export class RayCamera {
                tex_x = 0;
             }
 
-            if (transform_y > 0 && stripe >= 0 && stripe <= height && transform_y < z_buffer[stripe]) {
+            if (transform_y > 0 && transform_y < z_buffer[stripe]) {
                for (let y = draw_start_y; y < draw_end_y; y++) {
                   const d = y * 256 - height * 128 + sprite_height * 128;
                   let tex_y = int((d * texture.h) / sprite_height / 256);
@@ -451,17 +453,17 @@ export class RayCamera {
 
                   const [r, g, b, a] = clr || [0, 0, 0, 0];
                   if (r + g + b === 0 || a === 0) {
-                     if (a === 0) {
-                        console.error('TEXTURE CORD BAD');
-                     }
                      continue;
                   }
 
-                  set_image_pixel(stripe, y, clr, view_buffer.pixels, this._viewport.width);
+                  if (sprite.translucent) {
+                     const old_color = get_image_pixel(stripe, y, view_buffer.pixels, this._viewport.width);
+                     const new_color = average_colors(old_color, clr);
+                     set_image_pixel(stripe, y, new_color, view_buffer.pixels, this._viewport.width);
+                  } else {
+                     set_image_pixel(stripe, y, clr, view_buffer.pixels, this._viewport.width);
+                  }
 
-                  // const old_color = get_image_pixel(stripe, y, view_buffer.pixels, this._viewport.width);
-                  // const new_color = average_colors(old_color, clr);
-                  // set_image_pixel(stripe, y, new_color, view_buffer.pixels, this._viewport.width);
                }
             }
          }

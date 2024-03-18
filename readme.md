@@ -6,9 +6,6 @@ References
 Known Bugs a.k.a
 FIXME
 
--  [ ] sprites are not drawn ar x-res > 50% wtf lol
--  [ ] sprites size is discrete, use floats?
--  [x] sprites sorting is not working properly
 -  [ ] is_side_hit is wrong than looking straight up/down/left/right
 
 Possible performance improvements:
@@ -33,8 +30,9 @@ TODO List:
 - [x] add minimap
 - [ ] add side shading to all objects
 - [ ] add texture to all objects
-- [ ] make entities a class to give them modify attrs
+- [ ] make sprites a class to give them modify attrs
 - [ ] add transparent textures
+- [x] add transparent sprites
 - [ ] implement distance-based texture shading
 - [ ] add collisions
 - [ ] implement DDA to compare to SDF
