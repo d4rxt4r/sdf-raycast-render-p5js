@@ -9,6 +9,7 @@ import { TEX_WIDTH, TEX_HEIGHT } from 'textures';
  * @property {number} height - the height of the level
  * @property {Object} level_data - the data containing raw_data and sprites for the level
  * @property {Object} textures - the textures for the level
+ * @property {Array} shaders
  * @property {Object} fonts
  */
 
@@ -60,6 +61,11 @@ export class SDFScene {
        * @type {Object}
        */
       this.textures = options.textures;
+      /**
+       * The shaders for the level.
+       * @type {Array}
+       */
+      this.shaders = options.shaders;
       /**
        * The fonts for the level.
        * @type {Object}

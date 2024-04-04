@@ -14,6 +14,8 @@ const GREEN = [0, 255, 0];
 const BLUE = [0, 0, 255];
 const FLOOR_COLOR = [200, 200, 200];
 const CEILING_COLOR = [100, 100, 100];
+const FRAG_FLOOR_COLOR = FLOOR_COLOR.map((l) => l / 255);
+const FRAG_CEILING_COLOR = CEILING_COLOR.map((l) => l / 255);
 
 const TEX_PATHS = [
    'textures/empty.png',
@@ -28,12 +30,17 @@ const TEX_PATHS = [
    'textures/greystone.png'
 ];
 
+const TEX_SHADERS = [
+   ['shaders/position.vert', 'shaders/background.frag'],
+   ['shaders/position.vert', 'shaders/walls.frag']
+];
+
 const TEX_IMAGES = [];
 const TEXTURES_LIST = [];
 
 const TEX_RED_CROSS = (tex, x, y, tex_w, tex_h, raw_pixels) => {
    const clr = [x != y && x != tex_w - y ? 255 : 0, 0, 0];
-   tex.set(x, y, color(...clr));
+   tex.set(x, y, color(clr));
    raw_pixels[tex_h * y + x] = clr;
 };
 
@@ -41,7 +48,7 @@ const TEX_XOR_GREEN = (tex, x, y, tex_w, tex_h, raw_pixels) => {
    const xor_color = ((x * 256) / tex_w) ^ ((y * 256) / tex_h);
    const hex_color = 256 * xor_color;
    const clr = [hex_color >> 16, (hex_color >> 8) & 0xff, hex_color & 0xff];
-   tex.set(x, y, color(...clr));
+   tex.set(x, y, color(clr));
    raw_pixels[tex_h * y + x] = clr;
 };
 
@@ -49,7 +56,7 @@ const TEX_YELLOW_GRAD = (tex, x, y, tex_w, tex_h, raw_pixels) => {
    const xy_color = (y * 128) / tex_h + (x * 128) / tex_w;
    const hex_color = 256 * xy_color + 65536 * xy_color;
    const clr = [hex_color >> 16, (hex_color >> 8) & 0xff, hex_color & 0xff];
-   tex.set(x, y, color(...clr));
+   tex.set(x, y, color(clr));
    raw_pixels[tex_h * y + x] = clr;
 };
 
@@ -133,6 +140,27 @@ async function preload_textures() {
    return TEXTURES_LIST;
 }
 
+async function preloadShaders() {
+   const shaders = [];
+
+   for (const [vertPath, fragPath] of TEX_SHADERS) {
+      shaders.push(
+         await new Promise((resolve, reject) => {
+            loadShader(
+               vertPath,
+               fragPath,
+               (result) => {
+                  resolve(result);
+               },
+               () => reject(`Error while loading ${vertPath}`, `Error while loading ${fragPath}`)
+            );
+         })
+      );
+   }
+
+   return shaders;
+}
+
 /**
  * Calculates the index of a pixel in an image given its x, y coordinates and channel number.
  * @param {number} x - The x coordinate of the pixel.
@@ -213,12 +241,15 @@ export {
    BLUE,
    FLOOR_COLOR,
    CEILING_COLOR,
+   FRAG_FLOOR_COLOR,
+   FRAG_CEILING_COLOR,
    TEX_WIDTH,
    TEX_HEIGHT,
    TEX_PATHS,
    TEX_IMAGES,
    TEXTURES_LIST,
    preload_textures,
+   preloadShaders,
    get_pixel_index,
    get_image_pixel,
    set_image_pixel,

@@ -1,11 +1,11 @@
 import { TARGET_FPS, WIDTH, HEIGHT, MAX_STEPS, ACCURACY } from 'const';
-import { BLACK, GREEN, preload_textures } from 'textures';
+import { preload_textures, preloadShaders } from 'textures';
 import { GUI, SDFScene, RayCamera } from 'classes';
 import { LEVEL_LIST } from 'levels';
-import { round } from 'math_utils';
 
 const fonts = { inconsolata: loadFont('lib/Inconsolata.otf') };
 const textures = await preload_textures();
+const shaders = await preloadShaders();
 
 const UserUI = new GUI();
 
@@ -15,6 +15,7 @@ const Scene = new SDFScene({
    height: HEIGHT,
    level_data: LEVEL_LIST[UserUI.get('level_select')],
    textures,
+   shaders,
    fonts
 });
 
@@ -31,12 +32,15 @@ const Camera = new RayCamera({
    debug_sdf: UserUI.get('debug_sdf'),
    shading_type: UserUI.get('shading_type'),
    show_textures: UserUI.get('show_textures'),
-   show_sprites: UserUI.get('show_sprites')
+   show_sprites: UserUI.get('show_sprites'),
+   show_fps: UserUI.get('show_fps')
 });
 
 function setup() {
    frameRate(UserUI.get('target_fps') || TARGET_FPS);
    createCanvas(WIDTH, HEIGHT, WEBGL);
+
+   Camera.calc_viewport();
 
    UserUI.hook({
       type: 'custom',
@@ -89,6 +93,7 @@ function setup() {
    UserUI.hook({ type: 'option', name: 'shading_type', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'show_textures', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'show_sprites', object: Camera, getter: 'get_option', setter: 'set_option' });
+   UserUI.hook({ type: 'option', name: 'show_fps', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'debug_rays', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'debug_sdf', object: Camera, getter: 'get_option', setter: 'set_option' });
    UserUI.hook({ type: 'option', name: 'mm_size', object: Camera, getter: 'get_option', setter: 'set_option' });
@@ -116,16 +121,6 @@ function draw() {
 
    if (keyIsPressed) {
       Camera.move();
-   }
-
-   if (UserUI.get('show_fps')) {
-      fill(BLACK);
-      noStroke();
-      rect(windowWidth - 110, 5, 80, 20);
-      fill(GREEN);
-      textFont(fonts.inconsolata, 16);
-      textStyle(BOLD);
-      text(`FPS: ${round(frameRate())}`, windowWidth - 100, 20);
    }
 }
 

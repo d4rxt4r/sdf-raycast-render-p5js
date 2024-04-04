@@ -2,7 +2,7 @@ import SDFBox from './objects/Box.js';
 import SDFCircle from './objects/Circle.js';
 import SDFTriangle from './objects/Triangle.js';
 
-import { WHITE } from 'textures';
+import { WHITE, GREEN } from 'textures';
 
 function gen_obj(type, col, row, tile_width, tile_height, textures) {
    if (!type) {
@@ -17,7 +17,7 @@ function gen_obj(type, col, row, tile_width, tile_height, textures) {
          y: row * tile_height,
          width: tile_width,
          height: tile_height,
-         color: WHITE,
+         color: GREEN,
          textures,
          texture_id
       });

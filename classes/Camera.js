@@ -9,13 +9,18 @@ import {
    SHADING_TYPE,
    FLOOR_COLOR,
    CEILING_COLOR,
+   FRAG_FLOOR_COLOR,
+   FRAG_CEILING_COLOR,
    get_image_pixel,
    set_image_pixel,
    average_colors,
-   lerp_colors
+   lerp_colors,
+   TEX_HEIGHT
 } from 'textures';
 import { SDFScene } from 'classes';
 
+const BG_SHADER = 0;
+const WALL_SHADER = 1;
 const FLOOR_TEXTURE = 3;
 const FLOOR_TEXTURE2 = 9;
 const CEILING_TEXTURE = 4;
@@ -35,6 +40,7 @@ const CAMERA_PLANE_DISTANCE = 50;
  * @property {string} shading_type - The shading type of the objects.
  * @property {boolean} show_textures - Enable texture mapping.
  * @property {boolean} show_sprites - Enable sprite rendering.
+ * @property {boolean} show_fps - Enable FPS counter.
  * @property {number} mm_size - The size of the minimap.
  * @property {number} mm_scale - The scale of the minimap.
  */
@@ -93,17 +99,39 @@ export class RayCamera {
        */
       this._sprite_distance = null;
       /**
+       * The buffer for the floor.
+       * @type {p5.Framebuffer}
+       * @private
+       */
+      this._floor_buffer = null;
+      /**
+       * The buffer for the scene view.
+       * @type {p5.Framebuffer}
+       * @private
+       */
+      /**
+       *
+       */
+      this._sprites_buffer = null;
+      /**
        * Array to store the z-buffer.
-       * @type {Array}
+       * @type {Uint8ClampedArray}
        */
       this._z_buffer = null;
+      /**
+       *
+       */
+      this._color_buffer = null;
+      /**
+       *
+       */
+      this._texture_buffer = null;
       /**
        * The buffer for the minimap.
        * @type {p5.Framebuffer}
        */
       this._minimap_buffer = null;
 
-      this.calc_viewport();
       this._sort_sprites();
    }
 
@@ -117,9 +145,32 @@ export class RayCamera {
       };
       this._plane_y = tan(deg_to_rad(this._options.fov) / 2);
 
-      this._view_buffer = createImage(this._viewport.width, this._viewport.height);
-      this._view_buffer.loadPixels();
-      this._z_buffer = new Array(this._viewport.w);
+      if (!this._view_buffer) {
+         this._view_buffer = createFramebuffer({
+            depth: false,
+            antialias: false,
+            textureFiltering: NEAREST,
+            format: FLOAT
+         });
+
+         this._floor_buffer = createFramebuffer({
+            depth: false,
+            antialias: false,
+            textureFiltering: NEAREST,
+            format: FLOAT
+         });
+
+         this._sprites_buffer = createFramebuffer({
+            depth: false,
+            antialias: false,
+            textureFiltering: NEAREST,
+            format: FLOAT
+         });
+      }
+
+      this._z_buffer = new Uint8ClampedArray(this._viewport.width * 4);
+      this._color_buffer = new Uint8ClampedArray(this._viewport.width * 4);
+      this._texture_buffer = new Uint8ClampedArray(this._viewport.width * 4);
    }
 
    /**
@@ -222,185 +273,83 @@ export class RayCamera {
    }
 
    /**
-    * Calculates the floor direction based on the direction vector and plane vector.
-    *
-    * @return {Object} Object containing start and end direction coordinates
-    * @private
-    */
-   _get_floor_dir() {
-      const { x: dirX, y: dirY } = this._dir_vec;
-      const { x: planeX, y: planeY } = this._plane_vec;
-
-      const start_dir_x = dirX + planeX;
-      const start_dir_y = dirY + planeY;
-
-      const end_dir_x = dirX - planeX;
-      const end_dir_y = dirY - planeY;
-
-      return { start_dir_x, start_dir_y, end_dir_x, end_dir_y };
-   }
-
-   /**
     * Renders the floor.
     *
-    * @param {Array} view_buffer
+    * @param {Array} draw_buffer
     * @private
     */
-   _render_floor(view_buffer) {
-      let x_pos, y_pos;
-      let cell_x, cell_y;
-      let tex_x, tex_y;
-      let ceiling_y;
-      let floor_texture, floor_color, ceiling_color;
-
-      floor_texture = this._options.scene.textures[FLOOR_TEXTURE];
+   _render_floor(draw_buffer) {
+      const floor_texture = this._options.scene.textures[FLOOR_TEXTURE];
+      const floor_texture2 = this._options.scene.textures[FLOOR_TEXTURE2];
       const ceiling_texture = this._options.scene.textures[CEILING_TEXTURE];
 
-      const { start_dir_x, start_dir_y, end_dir_x, end_dir_y } = this._get_floor_dir();
+      const background_shader = this._options.scene.shaders[BG_SHADER];
 
-      const start_x = this._pos_vec.x / floor_texture.w;
-      const start_y = this._pos_vec.y / floor_texture.h;
+      background_shader.setUniform('u_resolution', [this._viewport.width, this._viewport.height]);
+      background_shader.setUniform('u_floor_color', FRAG_FLOOR_COLOR);
+      background_shader.setUniform('u_ceiling_color', FRAG_CEILING_COLOR);
+      background_shader.setUniform('u_pos_vec', [this._pos_vec.x, this._pos_vec.y]);
+      background_shader.setUniform('u_dir_vec', [this._dir_vec.x, this._dir_vec.y]);
+      background_shader.setUniform('u_plane_vec', [this._plane_vec.x, this._plane_vec.y]);
+      background_shader.setUniform('u_ceiling_texture', ceiling_texture.data);
+      background_shader.setUniform('u_floor_texture', floor_texture.data);
+      background_shader.setUniform('u_floor_texture2', floor_texture2.data);
+      background_shader.setUniform('u_show_textures', this._options.show_textures);
 
-      // vertical position of the camera
-      const z_pos = this._viewport.height / 2;
+      shader(background_shader);
 
-      for (let y = int(z_pos); y < this._viewport.height; y++) {
-         ceiling_y = this._viewport.height - 1 - y;
+      draw_buffer.draw(() => {
+         noStroke();
+         rect(0, 0, draw_buffer.width, draw_buffer.height);
+      });
 
-         if (this._options.show_textures) {
-            // current y position compared to the center of the screen (the horizon)
-            const horizon_height = int(y - z_pos);
-            // horizontal distance from the camera to the floor for the current row.
-            // 0.5 is the z position exactly in the middle between floor and ceiling.
-            const row_dist = z_pos / horizon_height;
-
-            // calculate the real world step vector we have to add for each x (parallel to camera plane)
-            // adding step by step avoids multiplications with a weight in the inner loop
-            const step_x = (row_dist * (end_dir_x - start_dir_x)) / this._viewport.width;
-            const step_y = (row_dist * (end_dir_y - start_dir_y)) / this._viewport.width;
-
-            // real world coordinates of the leftmost column. This will be updated as we step to the right.
-            x_pos = start_x + row_dist * start_dir_x;
-            y_pos = start_y + row_dist * start_dir_y;
-
-            for (let x = 0; x < this._viewport.width; x++) {
-               // the cell coord is got from the integer parts of x_pos and y_pos
-               cell_x = int(x_pos);
-               cell_y = int(y_pos);
-
-               // get the texture coordinate from the fractional part
-               tex_x = int(floor_texture.w * (x_pos - cell_x)) & (floor_texture.w - 1);
-               tex_y = int(floor_texture.h * (y_pos - cell_y)) & (floor_texture.h - 1);
-
-               x_pos += step_x;
-               y_pos += step_y;
-
-               ceiling_color = ceiling_texture.half_raw_pixels[ceiling_texture.h * tex_y + tex_x];
-               if ((cell_x + cell_y) % 2 === 0) {
-                  floor_color =
-                     this._options.scene.textures[FLOOR_TEXTURE].half_raw_pixels[floor_texture.h * tex_y + tex_x];
-               } else {
-                  floor_color =
-                     this._options.scene.textures[FLOOR_TEXTURE2].half_raw_pixels[ceiling_texture.h * tex_y + tex_x];
-               }
-
-               set_image_pixel(x, y, floor_color, view_buffer.pixels, this._viewport.width);
-               set_image_pixel(x, ceiling_y, ceiling_color, view_buffer.pixels, this._viewport.width);
-            }
-         } else {
-            for (let x = 0; x < this._viewport.width; x++) {
-               set_image_pixel(x, y, FLOOR_COLOR, view_buffer.pixels, this._viewport.width);
-               set_image_pixel(x, ceiling_y, CEILING_COLOR, view_buffer.pixels, this._viewport.width);
-            }
-         }
-      }
+      resetShader();
    }
 
    /**
     * Renders the walls.
     *
-    * @param {Array} ray_collisions
-    * @param {Array} view_buffer
-    * @param {Array} z_buffer
+    * @param {Array} draw_buffer
     * @private
     */
-   _render_walls(ray_collisions, view_buffer, z_buffer) {
-      const collisions_count = this._viewport.width;
+   _render_walls(draw_buffer) {
+      const color_data = new ImageData(this._color_buffer, this._viewport.width);
+      const color_texture = new p5.Texture(window._renderer, color_data, {});
 
-      for (let scanLine = 0; scanLine < collisions_count; scanLine++) {
-         const line_data = ray_collisions[scanLine];
-         const distance = this._options.fisheye_correction ? line_data.perp_distance : line_data.distance;
+      const z_buffer_data = new ImageData(this._z_buffer, this._viewport.width);
+      const z_buffer_texture = new p5.Texture(window._renderer, z_buffer_data, {});
 
-         if (!isFinite(distance)) {
-            continue;
-         }
+      const texture_buffer = new ImageData(this._texture_buffer, this._viewport.width);
+      const texture_texture = new p5.Texture(window._renderer, texture_buffer, {});
 
-         const world_line_height = (this._options.scene.height / distance) * this._options.scene.tile_height;
-         const line_height = int(map_range(world_line_height, 0, this._options.scene.height, 0, this._viewport.height));
+      const walls_shader = this._options.scene.shaders[WALL_SHADER];
 
-         let draw_start = int(-line_height / 2 + this._viewport.height / 2);
-         draw_start = draw_start < 0 ? 0 : draw_start;
-         let draw_end = draw_start + line_height;
-         draw_end = draw_end >= this._viewport.height ? this._viewport.height : draw_end;
+      walls_shader.setUniform('u_show_textures', this._options.show_textures);
+      walls_shader.setUniform('u_color_data', color_texture);
+      walls_shader.setUniform('u_z_buffer_data', z_buffer_texture);
+      walls_shader.setUniform('u_texture_data', texture_texture);
+      walls_shader.setUniform('u_void_texture', this._options.scene.textures[2].data);
 
-         if (this._options.show_textures) {
-            const texture = this._options.scene.textures[line_data.texture_id ?? 0];
-            const step = (1.0 * texture.h) / line_height;
+      shader(walls_shader);
 
-            const tex_x = int(line_data.tex_x_pos);
-            let tex_pos = (draw_start - this._viewport.height / 2 + line_height / 2) * step;
+      draw_buffer.draw(() => {
+         clear();
+         noStroke();
+         rect(0, 0, draw_buffer.width, draw_buffer.height);
+      });
 
-            for (let y = draw_start; y < draw_end; y++) {
-               const tex_y = int(tex_pos) & (texture.h - 1);
-               tex_pos += step;
-
-               let display_texture =
-                  this._options.shading_type === SHADING_TYPE.SIDE && line_data.is_side_hit
-                     ? texture.half_raw_pixels
-                     : texture.raw_pixels;
-
-               const tex_color = display_texture[texture.h * tex_y + tex_x];
-
-               if (!tex_color) {
-                  console.error('TEXTURE BAD', tex_x, tex_y, texture.h);
-                  return;
-               }
-
-               set_image_pixel(collisions_count - scanLine - 1, y, tex_color, view_buffer.pixels, this._viewport.width);
-            }
-         } else {
-            let wall_color = line_data.color;
-            if (this._options.shading_type === SHADING_TYPE.DISTANCE) {
-               wall_color = lerp_colors(line_data.color, BLACK, line_data.distance / this._options.scene.width);
-            }
-            if (this._options.shading_type === SHADING_TYPE.SIDE && line_data.is_side_hit) {
-               wall_color = line_data.half_color;
-            }
-
-            for (let y = draw_start; y < draw_end; y++) {
-               set_image_pixel(
-                  collisions_count - scanLine - 1,
-                  y,
-                  wall_color,
-                  view_buffer.pixels,
-                  this._viewport.width
-               );
-            }
-         }
-
-         z_buffer[collisions_count - scanLine - 1] = line_data.perp_distance;
-      }
+      resetShader();
    }
 
    /**
     * Renders the sprites.
     *
     * @param {Array} ray_collisions
-    * @param {Array} view_buffer
+    * @param {Array} draw_buffer
     * @param {Array} z_buffer
     * @private
     */
-   _render_sprites(ray_collisions, view_buffer, z_buffer) {
+   _render_sprites(ray_collisions, draw_buffer, z_buffer) {
       for (let i = 0; i < this._options.scene.sprites.length; i++) {
          const sprite = this._options.scene.sprites[this._sprite_order[i]];
          const sprite_x = sprite.x - this._pos_vec.x;
@@ -457,13 +406,12 @@ export class RayCamera {
                   }
 
                   if (sprite.translucent) {
-                     const old_color = get_image_pixel(stripe, y, view_buffer.pixels, this._viewport.width);
+                     const old_color = get_image_pixel(stripe, y, draw_buffer.pixels, this._viewport.width);
                      const new_color = average_colors(old_color, clr);
-                     set_image_pixel(stripe, y, new_color, view_buffer.pixels, this._viewport.width);
+                     set_image_pixel(stripe, y, new_color, draw_buffer.pixels, this._viewport.width);
                   } else {
-                     set_image_pixel(stripe, y, clr, view_buffer.pixels, this._viewport.width);
+                     set_image_pixel(stripe, y, clr, draw_buffer.pixels, this._viewport.width);
                   }
-
                }
             }
          }
@@ -567,21 +515,29 @@ export class RayCamera {
     * @param {Array} ray_collisions - The ray collisions array.
     */
    _render(ray_collisions) {
-      // this._view_buffer.pixels.fill(...WHITE);
-
       // actually renders ceiling too
-      this._render_floor(this._view_buffer);
-      this._render_walls(ray_collisions, this._view_buffer, this._z_buffer);
-      if (this._options.show_sprites) {
-         this._render_sprites(ray_collisions, this._view_buffer, this._z_buffer);
-      }
-
-      this._view_buffer.updatePixels();
+      this._render_floor(this._floor_buffer);
+      this._render_walls(this._view_buffer);
+      // if (this._options.show_sprites) {
+      //    this._render_sprites(ray_collisions, this._sprites_buffer, this._z_buffer);
+      // }
 
       translate(-this._options.scene.width / 2, -this._options.scene.height / 2);
+
+      image(this._floor_buffer, 0, 0, this._options.scene.width, this._options.scene.height);
       image(this._view_buffer, 0, 0, this._options.scene.width, this._options.scene.height);
 
-      this._render_minimap(this._options.mm_scale, ray_collisions);
+      if (this._options.show_fps) {
+         fill(BLACK);
+         noStroke();
+         rect(windowWidth - 110, 5, 80, 20);
+         fill(GREEN);
+         textFont(this._options.scene.fonts.inconsolata, 16);
+         textStyle(BOLD);
+         text(`FPS: ${round(frameRate())}`, windowWidth - 100, 20);
+      }
+
+      // this._render_minimap(this._options.mm_scale, ray_collisions);
    }
 
    /**
@@ -590,7 +546,7 @@ export class RayCamera {
     * @param {BaseObject[]} scene_objects - The scene objects to check for collisions.
     */
    march(scene_objects) {
-      this._minimap_buffer && this._minimap_buffer.draw(() => background(BLACK));
+      // this._minimap_buffer && this._minimap_buffer.draw(() => background(BLACK));
 
       this._calc_projection_plane();
 
@@ -658,15 +614,11 @@ export class RayCamera {
             ray_step_vec.x = next_ray_step_x;
             ray_step_vec.y = next_ray_step_y;
 
-            this._options.debug_sdf &&
-               this._minimap_buffer &&
-               this._minimap_buffer.draw(() => {
-                  circle(ray_step_vec.x * this._options.mm_scale, ray_step_vec.y * this._options.mm_scale, 5);
-               });
-
             if (total_ray_distance > this._options.scene.width || total_ray_distance > this._options.scene.height) {
                wall_collision_data.distance = Infinity;
                total_ray_distance = Infinity;
+               wall_collision_data.color = GREEN;
+               wall_collision_data.half_color = RED;
             }
 
             if (
@@ -680,6 +632,26 @@ export class RayCamera {
 
          const ray_angle = ray_dir.angleBetween(this._plane_vec);
          const perp_distance = abs(total_ray_distance * sin(ray_angle));
+
+         const [r, g, b] = wall_collision_data.is_side_hit ? wall_collision_data.half_color : wall_collision_data.color;
+         this._color_buffer[ray * 4] = r;
+         this._color_buffer[ray * 4 + 1] = g;
+         this._color_buffer[ray * 4 + 2] = b;
+         this._color_buffer[ray * 4 + 3] = 255;
+
+         this._texture_buffer[ray * 4] = map_range(wall_collision_data?.tex_x_pos, 0, TEX_HEIGHT, 0, 255);
+         this._texture_buffer[ray * 4 + 1] = this._texture_buffer[ray * 4];
+         this._texture_buffer[ray * 4 + 2] = this._texture_buffer[ray * 4];
+         this._texture_buffer[ray * 4 + 3] = 255;
+
+         const world_line_height = this._options.fisheye_correction ? perp_distance : total_ray_distance;
+         const z_buffer_line_height =
+            (this._options.scene.height / world_line_height) * this._options.scene.tile_height;
+
+         this._z_buffer[ray * 4] = 255 - map_range(z_buffer_line_height, 0, this._viewport.height, 0, 255);
+         this._z_buffer[ray * 4 + 1] = this._z_buffer[ray * 4];
+         this._z_buffer[ray * 4 + 2] = this._z_buffer[ray * 4];
+         this._z_buffer[ray * 4 + 3] = 255;
 
          ray_collisions.push({
             ...wall_collision_data,
