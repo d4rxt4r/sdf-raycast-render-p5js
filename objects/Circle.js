@@ -2,12 +2,9 @@ import BaseObject from './Base.js';
 
 class SDFCircle extends BaseObject {
    constructor({ x, y, r, color }) {
-      super(x, y);
+      super({ x, y, color });
 
       this.r = r;
-      if (color) {
-         this._color = color;
-      }
    }
 
    collide(cx, cy) {

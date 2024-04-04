@@ -1,14 +1,12 @@
 import BaseObject from './Base.js';
-import { ACCURACY } from 'const';
 import { map_range, max, sqrt, abs } from 'math_utils';
 
 class SDFBox extends BaseObject {
    constructor({ x, y, width, height, color, textures, texture_id }) {
-      super({ x, y });
+      super({ x, y, color });
 
       this._w = width;
       this._h = height;
-      this._color = color ?? this._color;
       this._texture_id = texture_id ?? 0;
       this._texture = textures ? textures[texture_id] : null;
    }

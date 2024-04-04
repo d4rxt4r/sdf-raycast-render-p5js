@@ -3,7 +3,7 @@ import BaseObject from './Base.js';
 
 class SDFTriangle extends BaseObject {
    constructor({ x, y, ab_dist, ac_dist, color, sign, textures, texture_id }) {
-      super(x, y);
+      super({ x, y, color });
 
       this.ab_dist = ab_dist;
       this.ac_dist = ac_dist;
@@ -26,8 +26,6 @@ class SDFTriangle extends BaseObject {
       this.bc_dist = dist(this.bx, this.by, this.cx, this.cy);
 
       this._sign = sign ?? 1;
-      this._color = color ?? this._color;
-
       this._texture_id = texture_id;
       this._texture = textures ? textures[texture_id] : null;
    }
