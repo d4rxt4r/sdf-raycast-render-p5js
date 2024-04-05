@@ -5,17 +5,13 @@ import {
    BLACK,
    RED,
    GREEN,
-   BLUE,
-   SHADING_TYPE,
-   FLOOR_COLOR,
-   CEILING_COLOR,
    FRAG_FLOOR_COLOR,
    FRAG_CEILING_COLOR,
    get_image_pixel,
    set_image_pixel,
    average_colors,
-   lerp_colors,
-   TEX_HEIGHT
+   TEX_HEIGHT,
+   create_texture_from_array_buffer
 } from 'textures';
 import { SDFScene } from 'classes';
 
@@ -125,7 +121,7 @@ export class RayCamera {
       /**
        *
        */
-      this._texture_buffer = null;
+      this._textures_info_buffer = null;
       /**
        * The buffer for the minimap.
        * @type {p5.Framebuffer}
@@ -170,7 +166,7 @@ export class RayCamera {
 
       this._z_buffer = new Uint8ClampedArray(this._viewport.width * 4);
       this._color_buffer = new Uint8ClampedArray(this._viewport.width * 4);
-      this._texture_buffer = new Uint8ClampedArray(this._viewport.width * 4);
+      this._textures_info_buffer = new Uint8ClampedArray(this._viewport.width * 4);
    }
 
    /**
@@ -279,21 +275,21 @@ export class RayCamera {
     * @private
     */
    _render_floor(draw_buffer) {
-      const floor_texture = this._options.scene.textures[FLOOR_TEXTURE];
-      const floor_texture2 = this._options.scene.textures[FLOOR_TEXTURE2];
-      const ceiling_texture = this._options.scene.textures[CEILING_TEXTURE];
+      const floor_texture = this._options.scene.textures.list[FLOOR_TEXTURE];
+      const floor_texture2 = this._options.scene.textures.list[FLOOR_TEXTURE2];
+      const ceiling_texture = this._options.scene.textures.list[CEILING_TEXTURE];
 
       const background_shader = this._options.scene.shaders[BG_SHADER];
 
-      background_shader.setUniform('u_resolution', [this._viewport.width, this._viewport.height]);
       background_shader.setUniform('u_floor_color', FRAG_FLOOR_COLOR);
       background_shader.setUniform('u_ceiling_color', FRAG_CEILING_COLOR);
-      background_shader.setUniform('u_pos_vec', [this._pos_vec.x, this._pos_vec.y]);
+      background_shader.setUniform('u_floor_texture', floor_texture.image_data);
+      background_shader.setUniform('u_floor_texture2', floor_texture2.image_data);
+      background_shader.setUniform('u_ceiling_texture', ceiling_texture.image_data);
+      background_shader.setUniform('u_resolution', [this._viewport.width, this._viewport.height]);
       background_shader.setUniform('u_dir_vec', [this._dir_vec.x, this._dir_vec.y]);
+      background_shader.setUniform('u_pos_vec', [this._pos_vec.x, this._pos_vec.y]);
       background_shader.setUniform('u_plane_vec', [this._plane_vec.x, this._plane_vec.y]);
-      background_shader.setUniform('u_ceiling_texture', ceiling_texture.data);
-      background_shader.setUniform('u_floor_texture', floor_texture.data);
-      background_shader.setUniform('u_floor_texture2', floor_texture2.data);
       background_shader.setUniform('u_show_textures', this._options.show_textures);
 
       shader(background_shader);
@@ -313,22 +309,15 @@ export class RayCamera {
     * @private
     */
    _render_walls(draw_buffer) {
-      const color_data = new ImageData(this._color_buffer, this._viewport.width);
-      const color_texture = new p5.Texture(window._renderer, color_data, {});
-
-      const z_buffer_data = new ImageData(this._z_buffer, this._viewport.width);
-      const z_buffer_texture = new p5.Texture(window._renderer, z_buffer_data, {});
-
-      const texture_buffer = new ImageData(this._texture_buffer, this._viewport.width);
-      const texture_texture = new p5.Texture(window._renderer, texture_buffer, {});
-
       const walls_shader = this._options.scene.shaders[WALL_SHADER];
 
+      walls_shader.setUniform('u_color_data', create_texture_from_array_buffer(this._color_buffer));
+      walls_shader.setUniform('u_z_buffer_data', create_texture_from_array_buffer(this._z_buffer));
+      walls_shader.setUniform('u_texture_info_data', create_texture_from_array_buffer(this._textures_info_buffer));
+      walls_shader.setUniform('u_resolution', [this._viewport.width, this._viewport.height]);
+      walls_shader.setUniform('u_textures_map', this._options.scene.textures.image);
+      walls_shader.setUniform('u_textures_map_length', this._options.scene.textures.list.length);
       walls_shader.setUniform('u_show_textures', this._options.show_textures);
-      walls_shader.setUniform('u_color_data', color_texture);
-      walls_shader.setUniform('u_z_buffer_data', z_buffer_texture);
-      walls_shader.setUniform('u_texture_data', texture_texture);
-      walls_shader.setUniform('u_void_texture', this._options.scene.textures[2].data);
 
       shader(walls_shader);
 
@@ -474,6 +463,7 @@ export class RayCamera {
     * Renders a minimap of the scene and displays it on the canvas.
     *
     * @param {number} sizeFactor - the scale factor to resize the scene for the minimap.
+    * @private
     */
    _render_minimap(size_factor, ray_collisions) {
       if (!this._minimap_buffer) {
@@ -513,6 +503,7 @@ export class RayCamera {
     * Renders the current view buffer based on the given ray collisions.
     *
     * @param {Array} ray_collisions - The ray collisions array.
+    * @private
     */
    _render(ray_collisions) {
       // actually renders ceiling too
@@ -639,18 +630,18 @@ export class RayCamera {
          this._color_buffer[ray * 4 + 2] = b;
          this._color_buffer[ray * 4 + 3] = 255;
 
-         this._texture_buffer[ray * 4] = map_range(wall_collision_data?.tex_x_pos, 0, TEX_HEIGHT, 0, 255);
-         this._texture_buffer[ray * 4 + 1] = this._texture_buffer[ray * 4];
-         this._texture_buffer[ray * 4 + 2] = this._texture_buffer[ray * 4];
-         this._texture_buffer[ray * 4 + 3] = 255;
+         this._textures_info_buffer[ray * 4] = map_range(wall_collision_data.tex_x_pos || 0, 0, TEX_HEIGHT, 0, 255);
+         this._textures_info_buffer[ray * 4 + 1] = wall_collision_data.texture_id || 0;
+         this._textures_info_buffer[ray * 4 + 2] = 0;
+         this._textures_info_buffer[ray * 4 + 3] = 255;
 
          const world_line_height = this._options.fisheye_correction ? perp_distance : total_ray_distance;
          const z_buffer_line_height =
             (this._options.scene.height / world_line_height) * this._options.scene.tile_height;
 
          this._z_buffer[ray * 4] = 255 - map_range(z_buffer_line_height, 0, this._viewport.height, 0, 255);
-         this._z_buffer[ray * 4 + 1] = this._z_buffer[ray * 4];
-         this._z_buffer[ray * 4 + 2] = this._z_buffer[ray * 4];
+         this._z_buffer[ray * 4 + 1] = 0;
+         this._z_buffer[ray * 4 + 2] = 0;
          this._z_buffer[ray * 4 + 3] = 255;
 
          ray_collisions.push({

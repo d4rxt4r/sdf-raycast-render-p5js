@@ -1,5 +1,6 @@
 const TEX_WIDTH = 64;
 const TEX_HEIGHT = 64;
+const TEXTURE_RESOLUTION = 12;
 
 const SHADING_TYPE = {
    NONE: 0,
@@ -27,7 +28,8 @@ const TEX_PATHS = [
    'textures/pillar.png',
    'textures/barrel.png',
    'textures/greenlight.png',
-   'textures/greystone.png'
+   'textures/greystone.png',
+   'textures/purplestone.png'
 ];
 
 const TEX_SHADERS = [
@@ -35,14 +37,7 @@ const TEX_SHADERS = [
    ['shaders/position.vert', 'shaders/walls.frag']
 ];
 
-const TEX_IMAGES = [];
 const TEXTURES_LIST = [];
-
-const TEX_RED_CROSS = (tex, x, y, tex_w, tex_h, raw_pixels) => {
-   const clr = [x != y && x != tex_w - y ? 255 : 0, 0, 0];
-   tex.set(x, y, color(clr));
-   raw_pixels[tex_h * y + x] = clr;
-};
 
 const TEX_XOR_GREEN = (tex, x, y, tex_w, tex_h, raw_pixels) => {
    const xor_color = ((x * 256) / tex_w) ^ ((y * 256) / tex_h);
@@ -60,65 +55,45 @@ const TEX_YELLOW_GRAD = (tex, x, y, tex_w, tex_h, raw_pixels) => {
    raw_pixels[tex_h * y + x] = clr;
 };
 
-const TEX_GENS = [TEX_RED_CROSS, TEX_XOR_GREEN, TEX_YELLOW_GRAD];
+const TEX_GENS = [TEX_XOR_GREEN, TEX_YELLOW_GRAD];
 
 function gen_tex(tex_w, tex_h, tex_func) {
    const raw_pixels = [];
-   const tex = createImage(tex_w, tex_h);
-   tex.loadPixels();
+   const image_data = createImage(tex_w, tex_h);
+   image_data.loadPixels();
 
    for (let x = 0; x < tex_w; x++) {
       for (let y = 0; y < tex_h; y++) {
-         tex_func(tex, x, y, tex_w, tex_h, raw_pixels);
+         tex_func(image_data, x, y, tex_w, tex_h, raw_pixels);
       }
    }
 
-   tex.updatePixels();
-
-   const half_raw_pixels = raw_pixels.map((pixel) => pixel.map((l, i) => (i === 3 ? l : l / 2)));
+   image_data.updatePixels();
+   image_data.resize(tex_w * TEXTURE_RESOLUTION, tex_h * TEXTURE_RESOLUTION);
 
    return {
       w: tex_w,
       h: tex_h,
-      data: tex,
-      raw_pixels,
-      half_raw_pixels
+      image_data
    };
 }
 
 function gen_tex_from_img(tex_w, tex_h, image_data) {
-   const raw_pixels = [];
-   const tex = createGraphics(tex_w, tex_h, WEBGL);
-
-   tex.translate(-tex_w / 2, -tex_h / 2);
-   tex.image(image_data, 0, 0, tex_w, tex_h);
-   tex.loadPixels();
-
-   const d = tex.pixelDensity();
-
-   for (let x = 0; x < tex_w; x++) {
-      for (let y = 0; y < tex_h; y++) {
-         const i = 4 * d * (y * d * tex_w + x);
-
-         const clr = [tex.pixels[i], tex.pixels[i + 1], tex.pixels[i + 2]];
-         raw_pixels[tex_h * y + x] = clr;
-      }
-   }
-
-   const half_raw_pixels = raw_pixels.map((pixel) => pixel.map((l, i) => (i === 3 ? l : l / 2)));
+   image_data.loadPixels();
+   image_data.resize(tex_w * TEXTURE_RESOLUTION, tex_h * TEXTURE_RESOLUTION);
+   image_data.updatePixels();
 
    return {
       w: tex_w,
       h: tex_h,
-      data: image_data,
-      raw_pixels,
-      half_raw_pixels
+      image_data
    };
 }
 
 async function preload_textures() {
+   const tex_images = [];
    for (const path of TEX_PATHS) {
-      TEX_IMAGES.push(
+      tex_images.push(
          await new Promise((resolve, reject) => {
             loadImage(
                path,
@@ -131,13 +106,32 @@ async function preload_textures() {
       );
    }
 
-   TEXTURES_LIST.length = 0;
-   TEXTURES_LIST.push(
-      ...TEX_IMAGES.map((image_data) => gen_tex_from_img(TEX_WIDTH, TEX_HEIGHT, image_data)),
+   const textures_list = [];
+   textures_list.push(
+      ...tex_images.map((image_data) => gen_tex_from_img(TEX_WIDTH, TEX_HEIGHT, image_data)),
       ...TEX_GENS.map((tex_gen) => gen_tex(TEX_WIDTH, TEX_HEIGHT, tex_gen))
    );
 
-   return TEXTURES_LIST;
+   const data = textures_list.map((tex) => {
+      return tex.image_data.pixels;
+   });
+
+   const raw_tex_pixels = new Uint8ClampedArray(
+      data.reduce((acc, pixels_array) => {
+         const totalLength = acc.length + pixels_array.length;
+         const result = new Uint8ClampedArray(totalLength);
+         result.set(acc, 0);
+         result.set(pixels_array, acc.length);
+         return result;
+      }, new Uint8ClampedArray([]))
+   );
+   const texture_map_image = new ImageData(
+      raw_tex_pixels,
+      TEX_HEIGHT * TEXTURE_RESOLUTION,
+      TEX_WIDTH * TEXTURE_RESOLUTION * textures_list.length
+   );
+
+   return { list: textures_list, image: texture_map_image };
 }
 
 async function preloadShaders() {
@@ -159,6 +153,18 @@ async function preloadShaders() {
    }
 
    return shaders;
+}
+
+/**
+ * Creates a texture from the given array buffer.
+ *
+ * @param {ArrayBuffer} array_buffer - The array buffer containing pixel data.
+ * @param {number} [image_width=array_buffer.length / 4] - The width of the image in pixels.
+ * @return {p5.Texture} The texture created from the array buffer.
+ */
+function create_texture_from_array_buffer(array_buffer, image_width = array_buffer.length / 4) {
+   const image_data = new ImageData(array_buffer, image_width);
+   return new p5.Texture(window._renderer, image_data, {});
 }
 
 /**
@@ -246,10 +252,10 @@ export {
    TEX_WIDTH,
    TEX_HEIGHT,
    TEX_PATHS,
-   TEX_IMAGES,
    TEXTURES_LIST,
    preload_textures,
    preloadShaders,
+   create_texture_from_array_buffer,
    get_pixel_index,
    get_image_pixel,
    set_image_pixel,

@@ -112,7 +112,7 @@ export class SDFScene {
          for (let col = 0; col < this._raw_data[row].length; col++) {
             const type = this._raw_data[row][col];
             if (type) {
-               this.objects.push(gen_obj(type, col, row, this.tile_width, this.tile_height, this.textures));
+               this.objects.push(gen_obj(type, col, row, this.tile_width, this.tile_height, this.textures.list));
             }
          }
       }
