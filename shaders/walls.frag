@@ -8,7 +8,6 @@ varying vec2 vTexCoord;
 
 uniform bool u_show_textures;
 uniform float u_textures_map_length;
-uniform vec2 u_resolution;
 uniform sampler2D u_color_data;
 uniform sampler2D u_z_buffer_data;
 uniform sampler2D u_texture_info_data;
@@ -21,20 +20,16 @@ vec4 get_pixel_color(vec2 _st, vec2 tex_pos) {
 }
 
 void main() {
-   vec2 uv = vTexCoord;
    vec4 tex_color;
-
-   float x = uv.x * u_resolution.x;
-   float y = uv.y * u_resolution.y;
-
+   vec2 uv = vTexCoord;
    vec2 st = vec2(1. - uv.x, uv.y);
-   tex_color = texture2D(u_textures_map, vec2(st.x, st.y / 14. + 10. / 14.));
-   float z_dist = texture2D(u_z_buffer_data, st).x;
 
+   tex_color = texture2D(u_color_data, st);
+
+   float z_dist = texture2D(u_z_buffer_data, st).x;
    float line_height = 1. - z_dist;
    float draw_start = SCREEN_CENTER - line_height / 2.;
    float draw_end = draw_start + line_height;
-
    float step = 1. / line_height;
 
    if(u_show_textures) {
