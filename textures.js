@@ -1,6 +1,6 @@
 const TEX_WIDTH = 64;
 const TEX_HEIGHT = 64;
-const TEXTURE_RESOLUTION = 12;
+const TEXTURE_RESOLUTION_SCALE = 8;
 
 const SHADING_TYPE = {
    NONE: 0,
@@ -69,7 +69,7 @@ function gen_tex(tex_w, tex_h, tex_func) {
    }
 
    image_data.updatePixels();
-   image_data.resize(tex_w * TEXTURE_RESOLUTION, tex_h * TEXTURE_RESOLUTION);
+   image_data.resize(tex_w * TEXTURE_RESOLUTION_SCALE, tex_h * TEXTURE_RESOLUTION_SCALE);
 
    return {
       w: tex_w,
@@ -80,7 +80,7 @@ function gen_tex(tex_w, tex_h, tex_func) {
 
 function gen_tex_from_img(tex_w, tex_h, image_data) {
    image_data.loadPixels();
-   image_data.resize(tex_w * TEXTURE_RESOLUTION, tex_h * TEXTURE_RESOLUTION);
+   image_data.resize(tex_w * TEXTURE_RESOLUTION_SCALE, tex_h * TEXTURE_RESOLUTION_SCALE);
    image_data.updatePixels();
 
    return {
@@ -127,8 +127,8 @@ async function preload_textures() {
    );
    const texture_map_image = new ImageData(
       raw_tex_pixels,
-      TEX_HEIGHT * TEXTURE_RESOLUTION,
-      TEX_WIDTH * TEXTURE_RESOLUTION * textures_list.length
+      TEX_HEIGHT * TEXTURE_RESOLUTION_SCALE,
+      TEX_WIDTH * TEXTURE_RESOLUTION_SCALE * textures_list.length
    );
 
    return { list: textures_list, image: texture_map_image };

@@ -10,6 +10,7 @@ FIXME
 
        possible solution: use -128/128 height data
 
+-  [ ] texture mapping is slightly offset
 -  [ ] reimplement shading in shaders
 -  [ ] blurry textures
 -  [ ] gui buttons broken after GUI toggle
@@ -18,23 +19,13 @@ FIXME
 Possible performance improvements:
 
 -  [ ] use WebGL Framebuffers to draw graphics
--  [ ] separate rendering in separate web workers
--  [x] calculate sprites order only on player movement
--  [x] use p5.Graphics instead of p5.Image
--  [x] use native JS call for Maths functions
-       (sin, cos, max, etc..)
--  [x] don't construct p5.Color objects than array of values can be used
-       (use [r, g, b, a] instead of color(r, g, b, a))
--  [x] cache all graphics, resize pixels only on width/height change
-       (getImageData is slow)
--  [x] set p5.Image.pixels instead of p5.Image.set()
-       (set is slow)
+-  [ ] calculations in separate web workers
 -  [ ] remove unnecessary p5.push()'s and p5.pop()'s
 -  [ ] redraw on changes? (https://p5js.org/reference/#/p5/redraw)
--  [ ] try vertical floor casting
 
 TODO List:
 
+-  [ ] separate render class and ray camera
 -  [x] add minimap
 -  [ ] add side shading to all objects
 -  [ ] add texture to all objects

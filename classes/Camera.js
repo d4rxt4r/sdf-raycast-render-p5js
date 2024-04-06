@@ -476,13 +476,13 @@ export class RayCamera {
       const camera_pos_y = this._pos_vec.y * size_factor;
 
       this._minimap_buffer.draw(() => {
+         clear();
          this._render_camera(camera_pos_x, camera_pos_y, size_factor, ray_collisions);
          this._options.scene.render(size_factor);
       });
 
       const mm_size = this._options.mm_size;
 
-      noFill();
       stroke(GREEN);
       rect(0, 0, mm_size, mm_size);
 
@@ -506,12 +506,15 @@ export class RayCamera {
     * @private
     */
    _render(ray_collisions) {
+      // shapes must be filled otherwise shaders wont be drawn
+      fill(BLACK);
       // actually renders ceiling too
       this._render_floor(this._floor_buffer);
       this._render_walls(this._view_buffer);
       // if (this._options.show_sprites) {
       //    this._render_sprites(ray_collisions, this._sprites_buffer, this._z_buffer);
       // }
+      noFill();
 
       translate(-this._options.scene.width / 2, -this._options.scene.height / 2);
 
@@ -526,9 +529,10 @@ export class RayCamera {
          textFont(this._options.scene.fonts.inconsolata, 16);
          textStyle(BOLD);
          text(`FPS: ${round(frameRate())}`, windowWidth - 100, 20);
+         noFill();
       }
 
-      // this._render_minimap(this._options.mm_scale, ray_collisions);
+      this._render_minimap(this._options.mm_scale, ray_collisions);
    }
 
    /**

@@ -54,7 +54,7 @@ class SDFBox extends BaseObject {
       const h = this._h * size_factor;
       rect(x, y, w, h);
       if (this._texture) {
-         image(this._texture.data, x, y, w, h);
+         image(this._texture.image_data, x, y, w, h);
       }
    }
 
