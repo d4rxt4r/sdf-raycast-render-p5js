@@ -34,7 +34,9 @@ const TEX_PATHS = [
 
 const TEX_SHADERS = [
    ['shaders/position.vert', 'shaders/background.frag'],
-   ['shaders/position.vert', 'shaders/walls.frag']
+   ['shaders/position.vert', 'shaders/walls.frag'],
+   ['shaders/position.vert', 'shaders/sprites.frag'],
+   ['shaders/position.vert', 'shaders/sprites.frag']
 ];
 
 const TEXTURES_LIST = [];

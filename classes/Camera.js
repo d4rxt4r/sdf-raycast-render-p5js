@@ -7,9 +7,6 @@ import {
    GREEN,
    FRAG_FLOOR_COLOR,
    FRAG_CEILING_COLOR,
-   get_image_pixel,
-   set_image_pixel,
-   average_colors,
    TEX_HEIGHT,
    create_texture_from_array_buffer
 } from 'textures';
@@ -17,8 +14,10 @@ import { SDFScene } from 'classes';
 
 const BG_SHADER = 0;
 const WALL_SHADER = 1;
+const SPRITES_SHADER = 2;
+const SPRITES_SHADER_2 = 3;
 const FLOOR_TEXTURE = 3;
-const FLOOR_TEXTURE2 = 9;
+const FLOOR_TEXTURE_2 = 9;
 const CEILING_TEXTURE = 4;
 const CAMERA_PLANE_DISTANCE = 50;
 
@@ -58,7 +57,7 @@ export class RayCamera {
        * The position of the camera.
        * @type {p5.Vector}
        */
-      this._pos_vec = createVector(this._options.scene.width / 2, this._options.scene.height / 2);
+      this._pos_vec = this._options.scene.get_center_vec();
       /**
        * The direction of the camera.
        * @type {p5.Vector}
@@ -106,7 +105,15 @@ export class RayCamera {
        * @private
        */
       /**
-       *
+       * The image buffer for the scene view.
+       * @type {p5.Framebuffer}
+       * @private
+       */
+      this._view_buffer = null;
+      /**
+       * The image buffer for the sprites in the scene.
+       * @type {p5.Framebuffer}
+       * @private
        */
       this._sprites_buffer = null;
       /**
@@ -115,11 +122,13 @@ export class RayCamera {
        */
       this._z_buffer = null;
       /**
-       *
+       * Array to store the colors of the sprites in the scene.
+       * @type {Uint8ClampedArray}
        */
       this._color_buffer = null;
       /**
-       *
+       * Array to store the information about the textures in the scene.
+       * @type {Uint8ClampedArray}
        */
       this._textures_info_buffer = null;
       /**
@@ -196,16 +205,16 @@ export class RayCamera {
     */
    move() {
       if (keyIsDown(87)) {
-         this._pos_vec.add(p5.Vector.setMag(this._dir_vec, PLAYER_SPEED));
+         this._pos_vec.add(p5.Vector.setMag(this._dir_vec, PLAYER_SPEED * deltaTime));
       }
       if (keyIsDown(83)) {
-         this._pos_vec.sub(p5.Vector.setMag(this._dir_vec, PLAYER_SPEED));
+         this._pos_vec.sub(p5.Vector.setMag(this._dir_vec, PLAYER_SPEED * deltaTime));
       }
       if (keyIsDown(65)) {
-         this._dir_vec.rotate(-ROTATE_SPEED);
+         this._dir_vec.rotate(-ROTATE_SPEED * deltaTime);
       }
       if (keyIsDown(68)) {
-         this._dir_vec.rotate(ROTATE_SPEED);
+         this._dir_vec.rotate(ROTATE_SPEED * deltaTime);
       }
 
       this._sort_sprites();
@@ -276,7 +285,7 @@ export class RayCamera {
     */
    _render_floor(draw_buffer) {
       const floor_texture = this._options.scene.textures.list[FLOOR_TEXTURE];
-      const floor_texture2 = this._options.scene.textures.list[FLOOR_TEXTURE2];
+      const floor_texture_2 = this._options.scene.textures.list[FLOOR_TEXTURE_2];
       const ceiling_texture = this._options.scene.textures.list[CEILING_TEXTURE];
 
       const background_shader = this._options.scene.shaders[BG_SHADER];
@@ -284,7 +293,7 @@ export class RayCamera {
       background_shader.setUniform('u_floor_color', FRAG_FLOOR_COLOR);
       background_shader.setUniform('u_ceiling_color', FRAG_CEILING_COLOR);
       background_shader.setUniform('u_floor_texture', floor_texture.image_data);
-      background_shader.setUniform('u_floor_texture2', floor_texture2.image_data);
+      background_shader.setUniform('u_floor_texture2', floor_texture_2.image_data);
       background_shader.setUniform('u_ceiling_texture', ceiling_texture.image_data);
       background_shader.setUniform('u_resolution', [this._viewport.width, this._viewport.height]);
       background_shader.setUniform('u_dir_vec', [this._dir_vec.x, this._dir_vec.y]);
@@ -292,14 +301,11 @@ export class RayCamera {
       background_shader.setUniform('u_plane_vec', [this._plane_vec.x, this._plane_vec.y]);
       background_shader.setUniform('u_show_textures', this._options.show_textures);
 
-      shader(background_shader);
-
       draw_buffer.draw(() => {
+         shader(background_shader);
          noStroke();
          rect(0, 0, draw_buffer.width, draw_buffer.height);
       });
-
-      resetShader();
    }
 
    /**
@@ -319,91 +325,46 @@ export class RayCamera {
       walls_shader.setUniform('u_textures_map_length', this._options.scene.textures.list.length);
       walls_shader.setUniform('u_show_textures', this._options.show_textures);
 
-      shader(walls_shader);
-
       draw_buffer.draw(() => {
+         shader(walls_shader);
          clear();
          noStroke();
          rect(0, 0, draw_buffer.width, draw_buffer.height);
       });
-
-      resetShader();
    }
 
    /**
     * Renders the sprites.
     *
-    * @param {Array} ray_collisions
-    * @param {Array} draw_buffer
-    * @param {Array} z_buffer
     * @private
     */
-   _render_sprites(ray_collisions, draw_buffer, z_buffer) {
-      for (let i = 0; i < this._options.scene.sprites.length; i++) {
+   _render_sprites(draw_buffer) {
+      for (let i = 0; i < this._sprite_order.length; i++) {
+         const shader_id = (i & 1) === 0 ? SPRITES_SHADER : SPRITES_SHADER_2;
+         const sprites_shader = this._options.scene.shaders[shader_id];
+
+         sprites_shader.setUniform('u_z_buffer_data', create_texture_from_array_buffer(this._z_buffer));
+         sprites_shader.setUniform('u_resolution', [this._viewport.width, this._viewport.height]);
+         sprites_shader.setUniform('u_plane_vec', [this._plane_vec.x, this._plane_vec.y]);
+         sprites_shader.setUniform('u_dir_vec', [this._dir_vec.x, this._dir_vec.y]);
+         sprites_shader.setUniform('u_textures_map', this._options.scene.textures.image);
+         sprites_shader.setUniform('u_textures_map_length', this._options.scene.textures.list.length);
+
          const sprite = this._options.scene.sprites[this._sprite_order[i]];
-         const sprite_x = sprite.x - this._pos_vec.x;
-         const sprite_y = sprite.y - this._pos_vec.y;
+         sprites_shader.setUniform('u_sprite_info', [
+            sprite.x - this._pos_vec.x,
+            sprite.y - this._pos_vec.y,
+            sprite.texture_id,
+            sprite.translucent
+         ]);
 
-         const inv_det = 1 / (this._plane_vec.x * this._dir_vec.y - this._dir_vec.x * this._plane_vec.y);
-         const transform_x = inv_det * (this._dir_vec.y * sprite_x - this._dir_vec.x * sprite_y);
-         const transform_y = inv_det * (this._plane_vec.y * -1 * sprite_x + this._plane_vec.x * sprite_y);
-         //                                                  ^ idk y i need to inverse it here
-
-         const width = this._viewport.width;
-         const height = this._viewport.height;
-
-         const sprite_screen_x = (width / 2) * (1 - transform_x / transform_y);
-
-         const _sprite_width = abs(this._options.scene.height / transform_y) * this._options.scene.tile_width;
-         const _sprite_height = abs(this._options.scene.height / transform_y) * this._options.scene.tile_height;
-
-         const sprite_width = map_range(_sprite_width, 0, this._options.scene.width, 0, this._viewport.width);
-         const sprite_height = map_range(_sprite_height, 0, this._options.scene.height, 0, this._viewport.height);
-
-         let draw_start_x = int(-sprite_width / 2 + sprite_screen_x);
-         if (draw_start_x < 0) draw_start_x = 0;
-         let draw_start_y = int(-sprite_height / 2 + height / 2);
-         if (draw_start_y < 0) draw_start_y = 0;
-
-         let draw_end_x = int(sprite_width / 2 + sprite_screen_x);
-         if (draw_end_x >= width) draw_end_x = width;
-         let draw_end_y = int(sprite_height / 2 + height / 2);
-         if (draw_end_y >= height) draw_end_y = height;
-
-         const texture = this._options.scene.textures[sprite.texture_id];
-         for (let stripe = draw_start_x; stripe < draw_end_x; stripe++) {
-            let tex_x = int(
-               int((256 * (stripe - (-sprite_width / 2 + sprite_screen_x)) * texture.w) / sprite_width) / 256
-            );
-
-            if (tex_x < 0) {
-               tex_x = 0;
-            }
-
-            if (transform_y > 0 && transform_y < z_buffer[stripe]) {
-               for (let y = draw_start_y; y < draw_end_y; y++) {
-                  const d = y * 256 - height * 128 + sprite_height * 128;
-                  let tex_y = int((d * texture.h) / sprite_height / 256);
-                  if (tex_y < 0) {
-                     tex_y = 0;
-                  }
-                  const clr = texture.raw_pixels[texture.w * tex_y + tex_x];
-
-                  const [r, g, b, a] = clr || [0, 0, 0, 0];
-                  if (r + g + b === 0 || a === 0) {
-                     continue;
-                  }
-
-                  if (sprite.translucent) {
-                     const old_color = get_image_pixel(stripe, y, draw_buffer.pixels, this._viewport.width);
-                     const new_color = average_colors(old_color, clr);
-                     set_image_pixel(stripe, y, new_color, draw_buffer.pixels, this._viewport.width);
-                  } else {
-                     set_image_pixel(stripe, y, clr, draw_buffer.pixels, this._viewport.width);
-                  }
-               }
-            }
-         }
+         draw_buffer.draw(() => {
+            shader(sprites_shader);
+            noStroke();
+            clear();
+            rect(0, 0, draw_buffer.width, draw_buffer.height);
+         });
+         image(draw_buffer, 0, 0, this._options.scene.width, this._options.scene.height);
       }
    }
 
@@ -511,15 +472,16 @@ export class RayCamera {
       // actually renders ceiling too
       this._render_floor(this._floor_buffer);
       this._render_walls(this._view_buffer);
-      // if (this._options.show_sprites) {
-      //    this._render_sprites(ray_collisions, this._sprites_buffer, this._z_buffer);
-      // }
-      noFill();
 
       translate(-this._options.scene.width / 2, -this._options.scene.height / 2);
-
       image(this._floor_buffer, 0, 0, this._options.scene.width, this._options.scene.height);
       image(this._view_buffer, 0, 0, this._options.scene.width, this._options.scene.height);
+
+      if (this._options.show_sprites) {
+         this._render_sprites(this._sprites_buffer);
+      }
+
+      noFill();
 
       if (this._options.show_fps) {
          fill(BLACK);

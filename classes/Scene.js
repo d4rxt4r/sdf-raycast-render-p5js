@@ -145,7 +145,10 @@ export class SDFScene {
     * @return {p5.Vector} The center vector of the scene.
     */
    get_center_vec() {
-      return createVector(this._width / 2, this._height / 2);
+      const width = (this._raw_data.length + 1) * this.tile_width;
+      const height = (this._raw_data[0].length + 1) * this.tile_height;
+
+      return createVector(width / 2, height / 2);
    }
 
    /**

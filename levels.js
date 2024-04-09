@@ -1,17 +1,31 @@
 const TEST_LEVEL_0 = {
    data: [
-      [0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 110, 0, 0, 0],
+      [0, 0, 110, 111, 19, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
       [0, 11, 0, 0, 0, 11, 0],
+      [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0]
    ],
    entities: [
       {
          x: 4,
-         y: 3,
+         y: 2,
          texture_id: 8,
+         name: 'light',
+         translucent: true
+      },
+      {
+         x: 3,
+         y: 2,
+         texture_id: 9,
+         name: 'light',
+         translucent: true
+      },
+      {
+         x: 5,
+         y: 2,
+         texture_id: 9,
          name: 'light',
          translucent: true
       }

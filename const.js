@@ -3,8 +3,8 @@ new p5();
 const WIDTH = window.innerWidth;
 const HEIGHT = window.innerHeight;
 
-const PLAYER_SPEED = 3;
-const ROTATE_SPEED = 0.05;
+const PLAYER_SPEED = 0.15;
+const ROTATE_SPEED = 0.003;
 
 const TARGET_FPS = 60;
 const RESOLUTION = 100;
