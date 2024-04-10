@@ -10,7 +10,7 @@ FIXME
 -  [ ] texture misalignment
 -  [x] reimplement shading in shaders
 -  [ ] blurry textures
--  [ ] gui buttons broken after GUI toggle
+-  [x] gui buttons broken after GUI toggle
 -  [ ] is_side_hit is wrong than looking straight up/down/left/right
 
 Possible performance improvements:
@@ -28,7 +28,7 @@ TODO List:
 -  [ ] add texture to all objects
 -  [ ] make sprites a class to give them modify attrs
 -  [ ] add transparent textures
--  [ ] implement distance-based texture shading
+-  [x] implement distance-based texture shading
 -  [ ] add collisions
 -  [ ] implement DDA to compare to SDF
 -  [ ] add walls, floors and ceilings variable heights

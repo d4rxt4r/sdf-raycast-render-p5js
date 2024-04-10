@@ -13,18 +13,18 @@ const TEST_LEVEL_0 = {
          y: 2,
          texture_id: 8,
          name: 'light',
+         translucent: true
       },
       {
          x: 3,
          y: 2,
          texture_id: 9,
-         name: 'light',
          translucent: true
       },
       {
          x: 5,
          y: 2,
-         texture_id: 0,
+         texture_id: 0
       }
    ]
 };
