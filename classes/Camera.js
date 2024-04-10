@@ -320,7 +320,6 @@ export class RayCamera {
       walls_shader.setUniform('u_color_data', create_texture_from_array_buffer(this._color_buffer));
       walls_shader.setUniform('u_z_buffer_data', create_texture_from_array_buffer(this._z_buffer));
       walls_shader.setUniform('u_texture_info_data', create_texture_from_array_buffer(this._textures_info_buffer));
-      walls_shader.setUniform('u_resolution', [this._viewport.width, this._viewport.height]);
       walls_shader.setUniform('u_textures_map', this._options.scene.textures.image);
       walls_shader.setUniform('u_textures_map_length', this._options.scene.textures.list.length);
       walls_shader.setUniform('u_show_textures', this._options.show_textures);
@@ -345,7 +344,7 @@ export class RayCamera {
          const sprites_shader = this._options.scene.shaders[shader_id];
 
          sprites_shader.setUniform('u_z_buffer_data', create_texture_from_array_buffer(this._z_buffer));
-         sprites_shader.setUniform('u_resolution', [this._viewport.width, this._viewport.height]);
+         sprites_shader.setUniform('u_resolution', [this._options.scene.width, this._options.scene.height]);
          sprites_shader.setUniform('u_plane_vec', [this._plane_vec.x, this._plane_vec.y]);
          sprites_shader.setUniform('u_dir_vec', [this._dir_vec.x, this._dir_vec.y]);
          sprites_shader.setUniform('u_textures_map', this._options.scene.textures.image);
@@ -605,7 +604,7 @@ export class RayCamera {
          const z_buffer_line_height =
             (this._options.scene.height / world_line_height) * this._options.scene.tile_height;
 
-         const _total_height = map_range(z_buffer_line_height, 0, this._viewport.height, 0, 255);
+         const _total_height = map_range(z_buffer_line_height, 0, this._options.scene.height, 0, 255);
          let _height = 255 - _total_height;
          if (_height < -255*2) {
             _height = 255;
