@@ -15,7 +15,7 @@ FIXME
 
 Possible performance improvements:
 
--  [ ] use WebGL Framebuffers to draw graphics
+-  [x] use WebGL Framebuffers to draw graphics
 -  [ ] calculations in separate web workers
 -  [ ] remove unnecessary p5.push()'s and p5.pop()'s
 -  [ ] redraw on changes? (https://p5js.org/reference/#/p5/redraw)

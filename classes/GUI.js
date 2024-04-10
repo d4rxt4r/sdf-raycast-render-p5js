@@ -58,20 +58,6 @@ function createSliderWithLabel(start, end, current, label, step = 1) {
 }
 
 /**
- * Creates a user button with the given name and event handler.
- *
- * @param {string} name - The name of the button
- * @param {function} handler - The event handler for the button
- * @return {p5.Element} The created button
- */
-function createUserButton(name, handler) {
-   const button = createButton(name);
-   button.mousePressed(handler);
-
-   return button;
-}
-
-/**
  * @typedef Widget
  *
  * @property {string} name - The name of the widget
@@ -220,6 +206,26 @@ const WIDGETS = [
       prop: 'checked',
       create(root, value = false) {
          const widget = createCheckbox('show SDF', value);
+         widget.parent(root);
+
+         return { widget };
+      }
+   },
+   {
+      name: 'reset_pp',
+      prop: 'value',
+      create(root, value = null) {
+         const widget = createButton('reset player position');
+         widget.parent(root);
+
+         return { widget };
+      }
+   },
+   {
+      name: 'reset_cpp',
+      prop: 'value',
+      create(root, value = null) {
+         const widget = createButton('reset camera plane position');
          widget.parent(root);
 
          return { widget };
@@ -375,6 +381,11 @@ export class GUI {
          this._root = null;
       } else {
          this.create(WIDGETS);
+         this._hooks.forEach((h) => {
+            if (h.type === 'button') {
+               this._widgets.find((w) => w.name === h.name)._inst.mousePressed(h.handler);
+            }
+         });
       }
    }
 
@@ -411,6 +422,7 @@ export class GUI {
          }
 
          this._hooks.push({
+            type,
             name,
             getter: () => {
                return object[getter](name);
@@ -427,6 +439,7 @@ export class GUI {
          }
 
          this._hooks.push({
+            type,
             name,
             getter,
             setter
@@ -435,10 +448,22 @@ export class GUI {
 
       if (type === 'button') {
          if (!handler) {
-            throw new Error('Handler not provided');
+            throw new Error(`Handler for '${name}' is not provided`);
          }
 
-         createUserButton(name, handler).parent(this._root);
+         const widget_button = this._widgets.find((w) => w.name === name)?._inst;
+         if (!widget_button) {
+            throw new Error(`No widget with name '${name}'`);
+         }
+
+         if (widget_button) {
+            widget_button.mousePressed(handler);
+            this._hooks.push({
+               type,
+               name,
+               handler
+            });
+         }
       }
    }
 
@@ -459,7 +484,7 @@ export class GUI {
                widget.value = widget._inst[widget.value_prop]();
 
                const hook = this._hooks.find((hook) => hook.name === widget.name);
-               if (hook && hook.getter !== widget.value) {
+               if (hook && hook.type !== 'button' && hook.getter !== widget.value) {
                   const new_value = this.get(widget.name);
                   hook.setter(new_value);
                   widget?.value_label?.html(new_value);

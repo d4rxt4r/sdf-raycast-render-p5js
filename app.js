@@ -101,14 +101,14 @@ function setup() {
 
    UserUI.hook({
       type: 'button',
-      name: 'reset player position',
+      name: 'reset_pp',
       handler: () => {
          Camera.set_pos(Scene.get_center_vec());
       }
    });
    UserUI.hook({
       type: 'button',
-      name: 'reset camera plane position',
+      name: 'reset_cpp',
       handler: () => {
          Camera._dir_vec = createVector(0, -1);
       }
