@@ -11,7 +11,7 @@ FIXME
        possible solution: use -128/128 height data
 
 -  [ ] texture misalignment
--  [ ] reimplement shading in shaders
+-  [x] reimplement shading in shaders
 -  [ ] blurry textures
 -  [ ] gui buttons broken after GUI toggle
 -  [ ] is_side_hit is wrong than looking straight up/down/left/right
@@ -25,12 +25,11 @@ Possible performance improvements:
 
 TODO List:
 
+-  [ ] floor shadow
 -  [ ] separate render class and ray camera
--  [x] add minimap
 -  [ ] add side shading to all objects
 -  [ ] add texture to all objects
 -  [ ] make sprites a class to give them modify attrs
--  [x] add transparent sprites
 -  [ ] add transparent textures
 -  [ ] implement distance-based texture shading
 -  [ ] add collisions
@@ -38,5 +37,4 @@ TODO List:
 -  [ ] add walls, floors and ceilings variable heights
 -  [ ] connect nearest boxes to one object
 -  [ ] add more complex shapes
--  [x] resize window events
 -  [ ] add skybox

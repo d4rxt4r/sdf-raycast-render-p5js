@@ -3,11 +3,13 @@ precision mediump float;
 #endif
 
 #define SCREEN_CENTER 1. / 2.
+#define SIDE_SHADING_AMP 1.7;
 
 varying vec2 vTexCoord;
 
 uniform bool u_show_textures;
 uniform float u_textures_map_length;
+uniform int u_shading_type;
 uniform sampler2D u_color_data;
 uniform sampler2D u_z_buffer_data;
 uniform sampler2D u_texture_info_data;
@@ -37,6 +39,16 @@ void main() {
       float tex_y = -draw_start * step + (step * st.y);
 
       tex_color = get_pixel_color(st, vec2(tex_x, tex_y));
+   }
+
+   if(u_shading_type == 1) {
+      if(texture2D(u_texture_info_data, st).z * 255. == 1.) {
+         tex_color.rgb /= SIDE_SHADING_AMP;
+      }
+   }
+
+   if(u_shading_type == 2) {
+      tex_color.rgb *= (line_height / 1.);
    }
 
    if(uv.y >= draw_start && uv.y <= draw_end)

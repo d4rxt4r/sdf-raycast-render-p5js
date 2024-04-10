@@ -324,6 +324,7 @@ export class RayCamera {
       walls_shader.setUniform('u_textures_map', this._options.scene.textures.image);
       walls_shader.setUniform('u_textures_map_length', this._options.scene.textures.list.length);
       walls_shader.setUniform('u_show_textures', this._options.show_textures);
+      walls_shader.setUniform('u_shading_type', this._options.shading_type);
 
       draw_buffer.draw(() => {
          shader(walls_shader);
@@ -589,8 +590,7 @@ export class RayCamera {
 
          const ray_angle = ray_dir.angleBetween(this._plane_vec);
          const perp_distance = abs(total_ray_distance * sin(ray_angle));
-
-         const [r, g, b] = wall_collision_data.is_side_hit ? wall_collision_data.half_color : wall_collision_data.color;
+         const [r, g, b] = wall_collision_data.color;
          this._color_buffer[ray * 4] = r;
          this._color_buffer[ray * 4 + 1] = g;
          this._color_buffer[ray * 4 + 2] = b;
@@ -598,7 +598,7 @@ export class RayCamera {
 
          this._textures_info_buffer[ray * 4] = map_range(wall_collision_data.tex_x_pos || 0, 0, TEX_HEIGHT, 0, 255);
          this._textures_info_buffer[ray * 4 + 1] = wall_collision_data.texture_id || 0;
-         this._textures_info_buffer[ray * 4 + 2] = 0;
+         this._textures_info_buffer[ray * 4 + 2] = wall_collision_data.is_side_hit;
          this._textures_info_buffer[ray * 4 + 3] = 255;
 
          const world_line_height = this._options.fisheye_correction ? perp_distance : total_ray_distance;
@@ -606,8 +606,8 @@ export class RayCamera {
             (this._options.scene.height / world_line_height) * this._options.scene.tile_height;
 
          this._z_buffer[ray * 4] = 255 - map_range(z_buffer_line_height, 0, this._viewport.height, 0, 255);
-         this._z_buffer[ray * 4 + 1] = 0;
-         this._z_buffer[ray * 4 + 2] = 0;
+         this._z_buffer[ray * 4 + 1] = this._z_buffer[ray * 4];
+         this._z_buffer[ray * 4 + 1] = this._z_buffer[ray * 4];
          this._z_buffer[ray * 4 + 3] = 255;
 
          ray_collisions.push({
