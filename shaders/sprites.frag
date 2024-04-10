@@ -3,8 +3,8 @@ precision mediump float;
 #endif
 
 #define TILE_HEGHT 64.0
-#define TEX_WIDTH 64.0 * 8.
-#define TEX_HEIGHT 64.0 * 8.
+#define TEX_WIDTH 64.0 * 14.2
+#define TEX_HEIGHT 64.0 * 14.2
 #define OPACITY_AMP 0.6
 
 varying vec2 vTexCoord;
@@ -59,7 +59,7 @@ void main() {
       float stripe = st.x * u_resolution.x;
       float z_dist = texture2D(u_z_buffer_data, st).x;
 
-      float tex_x = (256. * (stripe - (-sprite_pos.x + sprite_pos.z)) * TEX_WIDTH / sprite_pos.x) / 256.;
+      float tex_x = ((256. * (stripe - (-sprite_pos.x / 2. + sprite_pos.z)) * TEX_WIDTH) / sprite_pos.x) / 256.;
 
       // if (transform_y > 0 && transform_y < z_buffer[stripe]) {
       if(transform.y > 0.) {
@@ -68,7 +68,7 @@ void main() {
             float d = y * 256. - u_resolution.y * 128. + sprite_pos.y * 128.;
             float tex_y = ((d * TEX_HEIGHT) / sprite_pos.y / 256.);
 
-            gl_FragColor = get_pixel_color(int(u_sprite_info.z), vec2(float(tex_x) / u_resolution.x, tex_y / u_resolution.y));
+            gl_FragColor = get_pixel_color(int(u_sprite_info.z), vec2(float(tex_x) / u_resolution.y, tex_y / u_resolution.y));
          }
       }
    }

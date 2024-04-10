@@ -13,7 +13,6 @@ const TEST_LEVEL_0 = {
          y: 2,
          texture_id: 8,
          name: 'light',
-         translucent: true
       },
       {
          x: 3,
@@ -25,9 +24,7 @@ const TEST_LEVEL_0 = {
       {
          x: 5,
          y: 2,
-         texture_id: 9,
-         name: 'light',
-         translucent: true
+         texture_id: 0,
       }
    ]
 };

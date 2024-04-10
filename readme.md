@@ -10,7 +10,7 @@ FIXME
 
        possible solution: use -128/128 height data
 
--  [ ] texture mapping is slightly offset
+-  [ ] texture misalignment
 -  [ ] reimplement shading in shaders
 -  [ ] blurry textures
 -  [ ] gui buttons broken after GUI toggle
