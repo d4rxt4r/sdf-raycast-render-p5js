@@ -6,10 +6,7 @@ References
 Known Bugs a.k.a
 FIXME
 
--  [ ] textures skewing if player too close
-
-       possible solution: use -128/128 height data
-
+-  [x] textures skewing if player too close
 -  [ ] texture misalignment
 -  [x] reimplement shading in shaders
 -  [ ] blurry textures

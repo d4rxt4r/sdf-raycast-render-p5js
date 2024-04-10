@@ -28,7 +28,8 @@ void main() {
 
    tex_color = texture2D(u_color_data, st);
 
-   float z_dist = texture2D(u_z_buffer_data, st).x;
+   vec4 z_data = texture2D(u_z_buffer_data, st);
+   float z_dist = z_data.x - z_data.y - z_data.z;
    float line_height = 1. - z_dist;
    float draw_start = SCREEN_CENTER - line_height / 2.;
    float draw_end = draw_start + line_height;

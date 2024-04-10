@@ -605,9 +605,15 @@ export class RayCamera {
          const z_buffer_line_height =
             (this._options.scene.height / world_line_height) * this._options.scene.tile_height;
 
-         this._z_buffer[ray * 4] = 255 - map_range(z_buffer_line_height, 0, this._viewport.height, 0, 255);
-         this._z_buffer[ray * 4 + 1] = this._z_buffer[ray * 4];
-         this._z_buffer[ray * 4 + 1] = this._z_buffer[ray * 4];
+         const _total_height = map_range(z_buffer_line_height, 0, this._viewport.height, 0, 255);
+         let _height = 255 - _total_height;
+         if (_height < -255*2) {
+            _height = 255;
+         }
+
+         this._z_buffer[ray * 4] = _height;
+         this._z_buffer[ray * 4 + 1] = _height < 0 ? abs(_height) : 0;
+         this._z_buffer[ray * 4 + 2] = _height < -255 ? abs(_height + 255) : 0;
          this._z_buffer[ray * 4 + 3] = 255;
 
          ray_collisions.push({
